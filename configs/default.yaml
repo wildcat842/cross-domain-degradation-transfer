@@ -1,0 +1,33 @@
+# Cross-Domain Degradation Transfer Learning
+# Default Configuration
+
+model:
+  deg_dim: 256
+  content_dim: 512
+  n_degradation_types: 8
+
+loss:
+  recon_weight: 1.0
+  kl_weight: 0.01
+  disentangle_weight: 0.1
+  domain_weight: 0.1
+
+training:
+  batch_size: 16
+  learning_rate: 0.0001
+  epochs: 100
+  optimizer: adam
+  scheduler: cosine
+
+data:
+  train_dir: data/train
+  val_dir: data/val
+  test_dir: data/test
+  image_size: 256
+  num_workers: 4
+
+experiment:
+  name: cddt_baseline
+  save_dir: experiments/
+  log_interval: 100
+  save_interval: 1000
