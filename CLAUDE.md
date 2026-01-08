@@ -46,8 +46,15 @@ work/
 │   ├── references.bib       # 참고문헌
 │   ├── tables/              # 결과 테이블 (LaTeX)
 │   └── figures/             # 논문 그림
+├── tests/
+│   ├── conftest.py          # Pytest fixtures
+│   ├── test_models.py       # 모델 유닛 테스트
+│   ├── test_losses.py       # 손실 함수 테스트
+│   ├── test_data.py         # 데이터 로더 테스트
+│   └── test_integration.py  # 통합 테스트
 ├── experiments/             # 실험 결과 저장
-└── requirements.txt
+├── requirements.txt
+└── pyproject.toml           # pytest 설정
 ```
 
 ## Development Commands
@@ -74,6 +81,13 @@ python scripts/evaluate.py --checkpoint experiments/best.pth \
 # t-SNE 시각화 생성
 python scripts/evaluate.py --checkpoint experiments/best.pth \
     --mode all --visualize_tsne --output_dir ./results
+
+# 테스트 실행
+pytest                           # 전체 테스트
+pytest tests/test_models.py      # 모델 테스트만
+pytest -v                        # 상세 출력
+pytest --cov=src                 # 커버리지 측정
+pytest -k "test_forward"         # 특정 테스트만
 ```
 
 ## Datasets
