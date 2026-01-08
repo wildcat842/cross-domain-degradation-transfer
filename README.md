@@ -68,6 +68,67 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 pytest tests/test_data.py -v
 ```
 
+## Git 사용 가이드
+
+### 현재 상태 확인 (먼저 실행 권장)
+
+```bash
+git status          # 수정된 파일 확인
+git branch          # 현재 브랜치 확인
+```
+
+### 원격 저장소에서 최신 코드 받기
+
+#### 1. 로컬에 수정한 게 없을 때 (가장 간단)
+```bash
+git pull
+```
+
+#### 2. 로컬에 수정한 게 있고, 유지하고 싶을 때 (권장)
+```bash
+git pull --rebase
+```
+
+충돌 발생 시:
+```bash
+git status              # 충돌 파일 확인
+# 충돌 파일 수정 후
+git add <파일>
+git rebase --continue
+```
+
+#### 3. 로컬 변경사항을 잠시 치워두고 업데이트
+```bash
+git stash               # 변경사항 임시 저장
+git pull
+git stash pop           # 변경사항 복원
+```
+
+#### 4. 다운받기만 하고 적용은 나중에
+```bash
+git fetch               # 코드 안 바뀜, 변경사항만 확인 가능
+git diff HEAD origin/main   # 변경 내용 확인
+git merge origin/main   # 적용
+```
+
+#### 5. 로컬 변경 전부 버리고 최신으로 맞추기 (⚠️ 주의: 되돌릴 수 없음)
+```bash
+git fetch origin
+git reset --hard origin/master
+```
+
+### 추천 워크플로우
+
+```bash
+git status
+git pull --rebase
+```
+
+문제 생기면:
+```bash
+git rebase --abort      # rebase 취소
+```
+
 ## Project Structure
 
 ```
