@@ -246,16 +246,28 @@ pytest --cov=src --cov-report=html
 
 파이프라인 코드를 건드리지 않고 데이터 탐색 및 시각화:
 
-```bash
-cd notebooks
-jupyter notebook
-```
-
 | 노트북 | 설명 | 데이터 필요 |
 |--------|------|-------------|
 | `01_data_exploration.ipynb` | 데이터셋 탐색, 샘플 시각화, 히스토그램 | O |
 | `02_model_visualization.ipynb` | 복원 결과, t-SNE, cross-domain transfer | O |
 | `03_quick_demo.ipynb` | 합성 이미지로 빠른 모델 테스트 | X |
+
+#### Jupyter 설정 (VS Code)
+
+```bash
+# 1. venv에 Jupyter 설치
+pip install ipykernel jupyter
+python -m ipykernel install --user --name venv --display-name "Python (venv)"
+
+# 2. VS Code에서 커널 선택
+#    - .ipynb 파일 열기 → 우측 상단 "Select Kernel" → venv 선택
+
+# 3. 확인 (노트북 셀에서)
+import sys
+print(sys.executable)  # venv 경로가 출력되면 정상
+```
+
+> 커널이 안 보이면: venv 활성화 후 VS Code 재시작 (`source venv/bin/activate && code .`)
 
 ## Datasets
 
