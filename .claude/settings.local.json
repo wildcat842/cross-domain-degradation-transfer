@@ -9,7 +9,9 @@
       "Bash(git init:*)",
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create cross-domain-degradation-transfer --public --description \"Cross-Domain Degradation Transfer Learning for Image Restoration - ICML 2026\" --source . --remote origin)",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Cross-Domain Degradation Transfer Learning framework\n\n- Add DegradationEncoder and ContentEncoder for disentanglement\n- Add CrossDomainDecoder with AdaIN for restoration\n- Add ICMLLoss with HSIC-based independence criterion\n- Add training and evaluation scripts\n- Add project configuration and requirements\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial commit: Cross-Domain Degradation Transfer Learning framework\n\n- Add DegradationEncoder and ContentEncoder for disentanglement\n- Add CrossDomainDecoder with AdaIN for restoration\n- Add ICMLLoss with HSIC-based independence criterion\n- Add training and evaluation scripts\n- Add project configuration and requirements\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git push:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd multi-domain data loading, evaluation, and paper structure\n\nFeatures:\n- Multi-domain datasets: ImageNet-C, LDCT, DIBCO, FMD\n- Cross-domain data loader with few-shot support\n- Evaluation metrics: PSNR, SSIM, LPIPS\n- Visualization tools: t-SNE, training curves, result grids\n- ICML 2026 paper template with tables\n\nScripts:\n- Enhanced train.py with multi-domain and cross-domain modes\n- Enhanced evaluate.py with full evaluation matrix\n\nConfigs:\n- cross_domain_transfer.yaml for transfer experiments\n- ablation.yaml for ablation study\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ]
   }
 }

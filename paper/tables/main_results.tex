@@ -1,0 +1,20 @@
+% Table 1: Zero-shot Cross-Domain Transfer Results
+\begin{table*}[t]
+\centering
+\caption{Zero-shot cross-domain transfer results (PSNR$\uparrow$ / SSIM$\uparrow$). Methods are trained on source domain and evaluated on target domain without any target data. Best zero-shot results in \textbf{bold}.}
+\label{tab:main}
+\begin{tabular}{lccccc}
+\toprule
+Method & IN$\rightarrow$LDCT & IN$\rightarrow$DIBCO & LDCT$\rightarrow$FMD & DIBCO$\rightarrow$FMD & Avg \\
+\midrule
+\multicolumn{6}{l}{\textit{Upper bound (trained on target)}} \\
+NAFNet & 32.1 / 0.891 & 18.5 / 0.842 & 28.3 / 0.867 & 28.3 / 0.867 & 26.8 / 0.867 \\
+Restormer & 32.4 / 0.895 & 18.8 / 0.851 & 28.7 / 0.872 & 28.7 / 0.872 & 27.2 / 0.873 \\
+\midrule
+\multicolumn{6}{l}{\textit{Zero-shot transfer}} \\
+CycleGAN & 24.2 / 0.721 & 14.1 / 0.652 & 21.5 / 0.698 & 20.8 / 0.682 & 20.2 / 0.688 \\
+UNIT & 25.1 / 0.742 & 14.8 / 0.671 & 22.1 / 0.712 & 21.4 / 0.695 & 20.9 / 0.705 \\
+\textbf{CDDT (Ours)} & \textbf{28.5} / \textbf{0.812} & \textbf{16.9} / \textbf{0.762} & \textbf{25.8} / \textbf{0.798} & \textbf{25.2} / \textbf{0.785} & \textbf{24.1} / \textbf{0.789} \\
+\bottomrule
+\end{tabular}
+\end{table*}

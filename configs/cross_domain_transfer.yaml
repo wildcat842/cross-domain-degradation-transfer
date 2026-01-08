@@ -1,5 +1,5 @@
-# Cross-Domain Degradation Transfer Learning
-# Default Configuration
+# Cross-Domain Transfer Experiment Configuration
+# For evaluating transfer from source to target domain
 
 model:
   deg_dim: 256
@@ -27,15 +27,22 @@ data:
   image_size: 256
   num_workers: 4
 
-# Multi-domain training
-domains:
-  - imagenet
-  - ldct
-  - dibco
-  - fmd
+# Cross-domain experiment matrix
+# Source -> Target combinations to evaluate
+cross_domain:
+  sources:
+    - imagenet
+    - ldct
+  targets:
+    - ldct
+    - dibco
+    - fmd
+
+  # Few-shot settings
+  n_shots: [0, 10, 100]
 
 experiment:
-  name: cddt_baseline
+  name: cross_domain_transfer
   save_dir: experiments/
   log_interval: 100
   save_interval: 10

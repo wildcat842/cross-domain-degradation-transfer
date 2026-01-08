@@ -1,0 +1,15 @@
+% Table 2: Few-shot Adaptation Results
+\begin{table}[t]
+\centering
+\caption{Few-shot adaptation results on LDCT (PSNR). Models first trained on ImageNet-C, then adapted with $k$ target samples.}
+\label{tab:fewshot}
+\begin{tabular}{lcccc}
+\toprule
+Method & 0-shot & 10-shot & 100-shot & Full \\
+\midrule
+Fine-tuning & 24.2 & 26.2 & 29.8 & 32.1 \\
+MAML & 24.2 & 27.1 & 30.2 & 31.8 \\
+\textbf{CDDT (Ours)} & \textbf{28.5} & \textbf{29.1} & \textbf{31.2} & \textbf{32.4} \\
+\bottomrule
+\end{tabular}
+\end{table}

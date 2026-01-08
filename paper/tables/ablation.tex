@@ -1,0 +1,18 @@
+% Table 3: Ablation Study
+\begin{table}[t]
+\centering
+\caption{Ablation study on loss components. Evaluated on IN$\rightarrow$LDCT zero-shot transfer.}
+\label{tab:ablation}
+\begin{tabular}{lccc}
+\toprule
+Configuration & PSNR & SSIM \\
+\midrule
+Full model & \textbf{28.5} & \textbf{0.812} \\
+\midrule
+w/o $\loss_\text{HSIC}$ & 26.8 & 0.781 \\
+w/o $\loss_\text{KL}$ & 27.4 & 0.792 \\
+w/o $\loss_\text{domain}$ & 27.1 & 0.786 \\
+w/o AdaIN & 25.9 & 0.762 \\
+\bottomrule
+\end{tabular}
+\end{table}

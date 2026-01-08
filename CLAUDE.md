@@ -15,7 +15,7 @@ Cross-Domain Degradation Transfer Learning - ICML 2026 Submission
 
 - **Framework**: PyTorch >= 2.0.0
 - **Language**: Python 3.8+
-- **Key Libraries**: torchvision, numpy, pyyaml, tensorboard
+- **Key Libraries**: torchvision, numpy, pyyaml, tensorboard, scikit-learn, pandas, matplotlib
 
 ## Project Structure
 
@@ -28,13 +28,24 @@ work/
 │   │   └── cddt.py          # 전체 모델 (CrossDomainDegradationTransfer)
 │   ├── losses/
 │   │   └── icml_loss.py     # ICMLLoss (HSIC, KL, Reconstruction)
-│   ├── data/                # 데이터 로딩 유틸리티
-│   └── utils/               # 헬퍼 함수
+│   ├── data/
+│   │   ├── datasets.py      # ImageNetC, LDCT, DIBCO, FMD 데이터셋
+│   │   └── loader.py        # Multi-domain loader, cross-domain pairs
+│   └── utils/
+│       ├── metrics.py       # PSNR, SSIM, LPIPS
+│       └── visualization.py # t-SNE, training curves, result grids
 ├── configs/
-│   └── default.yaml         # 기본 설정
+│   ├── default.yaml              # 기본 설정
+│   ├── cross_domain_transfer.yaml # 크로스 도메인 실험
+│   └── ablation.yaml             # Ablation study
 ├── scripts/
-│   ├── train.py             # 학습 스크립트
-│   └── evaluate.py          # 평가 스크립트
+│   ├── train.py             # 학습 스크립트 (multi-domain, cross-domain)
+│   └── evaluate.py          # 평가 스크립트 (PSNR/SSIM matrix, t-SNE)
+├── paper/
+│   ├── main.tex             # ICML 2026 논문 템플릿
+│   ├── references.bib       # 참고문헌
+│   ├── tables/              # 결과 테이블 (LaTeX)
+│   └── figures/             # 논문 그림
 ├── experiments/             # 실험 결과 저장
 └── requirements.txt
 ```
@@ -45,12 +56,62 @@ work/
 # 의존성 설치
 pip install -r requirements.txt
 
-# 학습 실행
+# Multi-domain 학습 (4개 도메인 동시)
 python scripts/train.py --config configs/default.yaml
 
-# 평가 실행
-python scripts/evaluate.py --checkpoint <path> --data_dir <path>
+# Cross-domain transfer 학습 (ImageNet → LDCT)
+python scripts/train.py --config configs/default.yaml \
+    --source_domain imagenet --target_domain ldct --n_shots 0
+
+# Few-shot adaptation (10-shot)
+python scripts/train.py --config configs/default.yaml \
+    --source_domain imagenet --target_domain ldct --n_shots 10
+
+# 전체 cross-domain 평가 매트릭스
+python scripts/evaluate.py --checkpoint experiments/best.pth \
+    --mode all --data_root ./data --output_dir ./results
+
+# t-SNE 시각화 생성
+python scripts/evaluate.py --checkpoint experiments/best.pth \
+    --mode all --visualize_tsne --output_dir ./results
 ```
+
+## Datasets
+
+| 도메인 | 데이터셋 | 크기 | 다운로드 |
+|--------|---------|------|---------|
+| Natural | ImageNet-C | 50K | https://github.com/hendrycks/robustness |
+| Medical | LDCT-Grand-Challenge | 5K | https://www.aapm.org/grandchallenge/lowdosect/ |
+| Document | DIBCO 2019 | 1K | https://vc.ee.duth.gr/dibco/ |
+| Microscopy | FMD | 12K | https://github.com/yinhaoz/denoising-fluorescence |
+
+데이터 구조:
+```
+data/
+├── imagenet-c/          # corruption/severity/class/image.jpg
+├── ldct/
+│   ├── train/
+│   │   ├── low_dose/
+│   │   └── full_dose/
+│   └── test/
+├── dibco/
+│   └── 2019/
+│       ├── imgs/
+│       └── gt/
+└── fmd/
+    └── Confocal_BPAE/
+        ├── noisy/
+        └── gt/
+```
+
+## Experiment Matrix
+
+| Source → Target | Zero-shot | 10-shot | 100-shot |
+|-----------------|-----------|---------|----------|
+| ImageNet → LDCT | ✓ | ✓ | ✓ |
+| ImageNet → DIBCO | ✓ | ✓ | ✓ |
+| LDCT → Microscopy | ✓ | ✓ | ✓ |
+| DIBCO → Cryo-EM | ✓ | ✓ | ✓ |
 
 ## Code Style and Conventions
 
@@ -58,6 +119,7 @@ python scripts/evaluate.py --checkpoint <path> --data_dir <path>
 - VAE 기반 열화 표현: `z_d` (continuous + discrete type)
 - 콘텐츠 표현: `z_c` (도메인 특화)
 - 모델 출력은 dictionary 형태로 반환
+- 이미지 범위: [-1, 1] (학습), [0, 1] (평가/시각화)
 
 ## Important Notes
 
@@ -67,7 +129,16 @@ python scripts/evaluate.py --checkpoint <path> --data_dir <path>
 - 열화 표현은 도메인 불변 (domain adversarial training)
 
 ### 손실 함수 구성
-1. **Reconstruction Loss**: L1 loss
-2. **KL Divergence**: VAE regularization
-3. **Disentanglement Loss**: HSIC 기반
-4. **Domain Adversarial Loss**: 도메인 불변성
+1. **Reconstruction Loss**: L1 loss (`recon_weight=1.0`)
+2. **KL Divergence**: VAE regularization (`kl_weight=0.01`)
+3. **Disentanglement Loss**: HSIC 기반 (`disentangle_weight=0.1`)
+4. **Domain Adversarial Loss**: 도메인 불변성 (`domain_weight=0.1`)
+
+### Baseline 비교 대상
+- **Supervised**: NAFNet, Restormer, DnCNN
+- **Unsupervised Transfer**: CycleGAN, UNIT
+
+### 논문 작성
+- LaTeX 템플릿: `paper/main.tex` (ICML 2026 형식)
+- 결과 테이블: `paper/tables/`
+- 예상 Figure: Framework overview, t-SNE of z_d, Qualitative comparisons
