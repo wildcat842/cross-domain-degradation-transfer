@@ -52,6 +52,11 @@ work/
 │   ├── test_losses.py       # 손실 함수 테스트
 │   ├── test_data.py         # 데이터 로더 테스트
 │   └── test_integration.py  # 통합 테스트
+├── notebooks/               # 연구자용 대화형 노트북
+│   ├── 01_data_exploration.ipynb    # 데이터 탐색
+│   ├── 02_model_visualization.ipynb # 모델 결과 시각화
+│   ├── 03_quick_demo.ipynb          # 빠른 데모
+│   └── examples/            # 테스트용 이미지
 ├── experiments/             # 실험 결과 저장
 ├── requirements.txt
 └── pyproject.toml           # pytest 설정
@@ -88,7 +93,20 @@ pytest tests/test_models.py      # 모델 테스트만
 pytest -v                        # 상세 출력
 pytest --cov=src                 # 커버리지 측정
 pytest -k "test_forward"         # 특정 테스트만
+
+# Jupyter 노트북 실행
+cd notebooks && jupyter notebook
 ```
+
+## Notebooks (연구자용)
+
+파이프라인 코드를 건드리지 않고 데이터 탐색 및 시각화:
+
+| 노트북 | 설명 |
+|--------|------|
+| `01_data_exploration.ipynb` | 데이터셋 탐색, 샘플 시각화, 히스토그램 |
+| `02_model_visualization.ipynb` | 복원 결과, t-SNE, cross-domain transfer |
+| `03_quick_demo.ipynb` | 데이터 없이 합성 이미지로 빠른 테스트 |
 
 ## Datasets
 

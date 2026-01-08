@@ -167,6 +167,12 @@ cross-domain-degradation-transfer/
 │   ├── test_data.py             # 데이터 로더 테스트
 │   └── test_integration.py      # 통합 테스트
 │
+├── notebooks/                    # 연구자용 노트북
+│   ├── 01_data_exploration.ipynb
+│   ├── 02_model_visualization.ipynb
+│   ├── 03_quick_demo.ipynb
+│   └── examples/                # 테스트 이미지
+│
 ├── paper/                        # 논문 관련
 │   ├── main.tex                 # ICML 2026 템플릿
 │   ├── references.bib
@@ -235,6 +241,21 @@ pytest -k "test_output_shape"
 # 커버리지 측정
 pytest --cov=src --cov-report=html
 ```
+
+### Notebooks (Interactive Exploration)
+
+파이프라인 코드를 건드리지 않고 데이터 탐색 및 시각화:
+
+```bash
+cd notebooks
+jupyter notebook
+```
+
+| 노트북 | 설명 | 데이터 필요 |
+|--------|------|-------------|
+| `01_data_exploration.ipynb` | 데이터셋 탐색, 샘플 시각화, 히스토그램 | O |
+| `02_model_visualization.ipynb` | 복원 결과, t-SNE, cross-domain transfer | O |
+| `03_quick_demo.ipynb` | 합성 이미지로 빠른 모델 테스트 | X |
 
 ## Datasets
 
