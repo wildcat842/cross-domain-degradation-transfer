@@ -131,8 +131,8 @@ runs/
 wandb/
 tensorboard/
 
-# Data
-data/
+# Data (raw datasets, not src/data/)
+/data/
 datasets/
 
 # IDE
