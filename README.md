@@ -61,7 +61,21 @@ pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 ```
 
-### 4. 설치 확인
+### 4. VS Code 설정 (선택)
+
+IntelliSense 및 자동 venv 활성화를 위해 `.vscode/settings.json` 생성:
+
+```json
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "jupyter.defaultKernel": "Python (venv)"
+}
+```
+
+> Windows: `venv/bin/python` → `venv/Scripts/python.exe`
+
+### 5. 설치 확인
 
 ```bash
 # 테스트 실행으로 설치 확인
