@@ -33,20 +33,26 @@ class CrossDomainDecoder(nn.Module):
     def __init__(self, content_dim=512, deg_dim=256):
         super().__init__()
 
+        # 동적 채널 계산: content_dim에서 시작하여 절반씩 감소
+        ch1 = content_dim
+        ch2 = max(content_dim // 2, 64)
+        ch3 = max(content_dim // 4, 32)
+        ch_out = max(content_dim // 8, 16)
+
         # 열화 제거를 위한 adaptive normalization
         self.adain_layers = nn.ModuleList([
-            AdaIN(512, deg_dim),
-            AdaIN(256, deg_dim),
-            AdaIN(128, deg_dim),
+            AdaIN(ch1, deg_dim),
+            AdaIN(ch2, deg_dim),
+            AdaIN(ch3, deg_dim),
         ])
 
         self.decoder = nn.ModuleList([
-            nn.ConvTranspose2d(512, 256, 4, 2, 1),
-            nn.ConvTranspose2d(256, 128, 4, 2, 1),
-            nn.ConvTranspose2d(128, 64, 4, 2, 1),
+            nn.ConvTranspose2d(ch1, ch2, 4, 2, 1),
+            nn.ConvTranspose2d(ch2, ch3, 4, 2, 1),
+            nn.ConvTranspose2d(ch3, ch_out, 4, 2, 1),
         ])
 
-        self.output = nn.Conv2d(64, 3, 3, 1, 1)
+        self.output = nn.Conv2d(ch_out, 3, 3, 1, 1)
 
     def forward(self, z_c, z_d, remove_degradation=True):
         """

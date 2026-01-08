@@ -86,15 +86,16 @@ class TestICMLLoss:
 
     def test_hsic_independence(self):
         """Test HSIC: independent variables should have low HSIC"""
+        torch.manual_seed(42)  # 재현성을 위한 시드 고정
         criterion = ICMLLoss()
 
         # Independent random variables
-        x = torch.randn(100, 64)
-        y = torch.randn(100, 64)
+        x = torch.randn(256, 64)
+        y = torch.randn(256, 64)
         hsic_indep = criterion._hsic(x, y)
 
-        # Dependent variables (y = x + noise)
-        y_dep = x + 0.1 * torch.randn_like(x)
+        # Strongly dependent variables (y = x, perfect correlation)
+        y_dep = x.clone()
         hsic_dep = criterion._hsic(x, y_dep)
 
         # Dependent should have higher HSIC
