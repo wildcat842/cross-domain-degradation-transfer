@@ -43,8 +43,8 @@ source venv/bin/activate
 
 #### Conda 사용 시
 ```bash
-# Conda 환경 생성
-conda create -n cddt python=3.10
+# Conda 환경 생성 (Python 3.10 ~ 3.12 지원)
+conda create -n cddt python=3.12
 conda activate cddt
 ```
 
@@ -233,8 +233,8 @@ data/
 
 ## Requirements
 
-- Python >= 3.8
-- PyTorch >= 2.0.0
+- Python 3.10 - 3.12 (3.12 권장)
+- PyTorch >= 2.4.0
 - CUDA >= 11.8 (optional, for GPU)
 
 ## Notes
