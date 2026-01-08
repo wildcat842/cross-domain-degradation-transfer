@@ -114,7 +114,7 @@ cd notebooks && jupyter notebook
 |--------|---------|------|---------|
 | Natural | ImageNet-C | 50K | https://github.com/hendrycks/robustness |
 | Medical | LDCT-Grand-Challenge | 5K | https://www.aapm.org/grandchallenge/lowdosect/ |
-| Document | DIBCO 2019 | 1K | https://vc.ee.duth.gr/dibco/ |
+| Document | DIBCO 2019 | 20 | https://vc.ee.duth.gr/dibco2019/ |
 | Microscopy | FMD | 12K | https://github.com/yinhaoz/denoising-fluorescence |
 
 데이터 구조:

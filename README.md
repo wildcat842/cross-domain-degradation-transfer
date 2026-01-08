@@ -289,7 +289,7 @@ print(sys.executable)  # venv 경로가 출력되면 정상
 |--------|---------|------|----------|
 | Natural | ImageNet-C | 50K | [Link](https://github.com/hendrycks/robustness) |
 | Medical | LDCT-Grand-Challenge | 5K | [Link](https://www.aapm.org/grandchallenge/lowdosect/) |
-| Document | DIBCO 2019 | 1K | [Link](https://vc.ee.duth.gr/dibco/) |
+| Document | DIBCO 2019 | 20 | [Official](https://vc.ee.duth.gr/dibco2019/) / [GitHub](https://github.com/tanmayGIT/DIBCO_2019_All) |
 | Microscopy | FMD | 12K | [Link](https://github.com/yinhaoz/denoising-fluorescence) |
 
 ### Data Directory Structure
