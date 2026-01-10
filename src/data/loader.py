@@ -68,15 +68,20 @@ def create_multi_domain_loader(
             dataset = get_dataset(domain, root, split, transform)
 
             if len(dataset) > 0:
+                # For small datasets, adjust batch_size and drop_last
+                effective_batch_size = min(batch_size, len(dataset))
+                # Only drop_last if we have enough samples for at least 2 batches
+                effective_drop_last = (split == 'train') and (len(dataset) >= 2 * effective_batch_size)
+
                 loaders[domain] = DataLoader(
                     dataset,
-                    batch_size=batch_size,
+                    batch_size=effective_batch_size,
                     shuffle=(split == 'train'),
                     num_workers=num_workers,
                     pin_memory=True,
-                    drop_last=(split == 'train'),
+                    drop_last=effective_drop_last,
                 )
-                print(f"[{domain}] Loaded {len(dataset)} samples")
+                print(f"[{domain}] Loaded {len(dataset)} samples (batch_size={effective_batch_size})")
             else:
                 print(f"[{domain}] Warning: No samples found at {root}")
 

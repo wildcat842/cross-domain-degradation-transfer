@@ -24,7 +24,7 @@ data:
   train_dir: data/train
   val_dir: data/val
   test_dir: data/test
-  image_size: 256
+  image_size: 64  # Tiny-ImageNet-C uses 64x64 images
   num_workers: 4
 
 # Multi-domain training
