@@ -17,7 +17,17 @@
       "Bash(python -m pytest:*)",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd pytest test suite for all modules\n\nTests:\n- test_models.py: DegradationEncoder, ContentEncoder, CrossDomainDecoder, CDDT\n- test_losses.py: ICMLLoss \\(HSIC, KL, reconstruction\\)\n- test_data.py: Datasets, transforms, MultiDomainIterator, metrics\n- test_integration.py: Training pipeline, checkpoint save/load\n\nConfig:\n- pyproject.toml: pytest configuration\n- requirements.txt: Added pytest, pytest-cov\n\nRun tests with: pytest -v\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
       "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd comprehensive README.md\n\nContents:\n- Quick start guide \\(clone, venv, install\\)\n- Project structure overview\n- Usage examples \\(training, evaluation, testing\\)\n- Dataset information and directory structure\n- Model architecture diagram\n- Loss function details\n- Requirements and notes\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git clone:*)",
+      "Bash(cat:*)",
+      "Bash(python:*)",
+      "Bash(curl:*)",
+      "Bash(ls -lh \"C:\\\\Users\\\\Seonyeong\\\\Dropbox\\\\020. Research Project\\\\2026. Claude Code\\\\work\\\\data\\\\ldct\"\"*.zip 2>/dev/null; ls -lh \"C:UsersSeonyeongDropbox020. Research Project2026. Claude Codeworkdataimagenet-c\"\"*.tar)",
+      "Bash(.venvScriptspip install nbconvert)",
+      "Bash(.venv/Scripts/pip install nbconvert)",
+      "Bash(ls:*)",
+      "Bash(unzip:*)",
+      "Bash(tar:*)"
     ]
   }
 }
