@@ -75,12 +75,18 @@ class PairedImageDataset(Dataset):
         }
 
 
-class ImageNetCDataset(PairedImageDataset):
+class ImageNetCDataset(Dataset):
     """
-    ImageNet-C: Natural images with synthetic corruptions
+    ImageNet-C / Tiny-ImageNet-C: Natural images with synthetic corruptions
 
     Corruptions: noise, blur, weather, digital
     Severity levels: 1-5
+
+    Supports two modes:
+    1. Paired mode (with clean): {root}/{corruption}/{severity}/{class}/{image}
+                                 {root}/clean/{class}/{image}
+    2. Degraded-only mode (Tiny-ImageNet-C): {root}/Tiny-ImageNet-C/{corruption}/{severity}/{class}/{image}
+       In this mode, uses different corruption as "target" for transfer learning
 
     Download: https://github.com/hendrycks/robustness
     """
@@ -92,6 +98,14 @@ class ImageNetCDataset(PairedImageDataset):
         'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression',  # Digital
     ]
 
+    # Tiny-ImageNet-C available corruptions (11 types)
+    TINY_CORRUPTION_TYPES = [
+        'shot_noise', 'impulse_noise',  # Noise
+        'defocus_blur', 'glass_blur', 'motion_blur',  # Blur
+        'frost', 'brightness',  # Weather
+        'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression',  # Digital
+    ]
+
     def __init__(
         self,
         root: str,
@@ -100,34 +114,78 @@ class ImageNetCDataset(PairedImageDataset):
         corruption_type: Optional[str] = None,
         severity: int = 3,
     ):
+        self.root = Path(root)
+        self.split = split
+        self.transform = transform
         self.corruption_type = corruption_type
         self.severity = severity
-        super().__init__(root, split, transform)
 
-    def _load_image_pairs(self) -> List[Tuple[Path, Path]]:
-        """Load ImageNet-C pairs based on corruption type and severity"""
-        pairs = []
-        root = Path(self.root)
+        # Detect if this is Tiny-ImageNet-C structure
+        self.is_tiny = (self.root / 'Tiny-ImageNet-C').exists()
+        if self.is_tiny:
+            self.base_dir = self.root / 'Tiny-ImageNet-C'
+        else:
+            self.base_dir = self.root
 
-        corruptions = [self.corruption_type] if self.corruption_type else self.CORRUPTION_TYPES
+        self.images = self._load_images()
+
+    def _load_images(self) -> List[Tuple[Path, Optional[Path]]]:
+        """Load images (paired or degraded-only)"""
+        images = []
+
+        # Determine which corruptions to use
+        available_corruptions = self.TINY_CORRUPTION_TYPES if self.is_tiny else self.CORRUPTION_TYPES
+        corruptions = [self.corruption_type] if self.corruption_type else available_corruptions
 
         for corruption in corruptions:
-            degraded_dir = root / corruption / str(self.severity)
-            clean_dir = root / 'clean'
+            degraded_dir = self.base_dir / corruption / str(self.severity)
 
             if not degraded_dir.exists():
                 continue
 
             for degraded_path in sorted(degraded_dir.glob('**/*')):
                 if degraded_path.suffix.lower() in ['.png', '.jpg', '.jpeg']:
-                    # ImageNet-C structure: corruption/severity/class/image.jpg
+                    # Check for paired clean image
                     relative_path = degraded_path.relative_to(degraded_dir)
-                    clean_path = clean_dir / relative_path
 
-                    if clean_path.exists():
-                        pairs.append((degraded_path, clean_path))
+                    if self.is_tiny:
+                        # Tiny-ImageNet-C: no clean, store None
+                        images.append((degraded_path, None))
+                    else:
+                        clean_dir = self.base_dir / 'clean'
+                        clean_path = clean_dir / relative_path
+                        if clean_path.exists():
+                            images.append((degraded_path, clean_path))
 
-        return pairs
+        return images
+
+    def __len__(self) -> int:
+        return len(self.images)
+
+    def __getitem__(self, idx: int) -> dict:
+        degraded_path, clean_path = self.images[idx]
+
+        degraded = Image.open(degraded_path).convert('RGB')
+
+        if self.transform:
+            degraded = self.transform(degraded)
+
+        result = {
+            'degraded': degraded,
+            'path': str(degraded_path),
+            'domain': 'imagenet-c',
+        }
+
+        if clean_path is not None:
+            clean = Image.open(clean_path).convert('RGB')
+            if self.transform:
+                clean = self.transform(clean)
+            result['clean'] = clean
+        else:
+            # For degraded-only mode, use degraded as target (self-supervised)
+            result['clean'] = degraded
+
+        return result
 
 
 class LDCTDataset(PairedImageDataset):
@@ -210,19 +268,29 @@ class DIBCODataset(PairedImageDataset):
     def _load_image_pairs(self) -> List[Tuple[Path, Path]]:
         """Load DIBCO pairs"""
         pairs = []
-        root = Path(self.root) / str(self.year) / self.split
 
-        degraded_dir = root / 'imgs'
-        clean_dir = root / 'gt'
+        # 두 가지 경로 패턴 지원:
+        # 1. {root}/{year}/imgs/ (split 없음)
+        # 2. {root}/{year}/{split}/imgs/ (split 있음)
+        root_no_split = Path(self.root) / str(self.year)
+        root_with_split = Path(self.root) / str(self.year) / self.split
+
+        # split 없는 구조 먼저 시도
+        if (root_no_split / 'imgs').exists():
+            degraded_dir = root_no_split / 'imgs'
+            clean_dir = root_no_split / 'gt'
+        else:
+            degraded_dir = root_with_split / 'imgs'
+            clean_dir = root_with_split / 'gt'
 
         if not degraded_dir.exists():
             return pairs
 
         for degraded_path in sorted(degraded_dir.glob('*')):
-            if degraded_path.suffix.lower() in ['.png', '.jpg', '.bmp', '.tif']:
+            if degraded_path.suffix.lower() in ['.png', '.jpg', '.jpeg', '.bmp', '.tif']:
                 # GT files may have different extension
                 stem = degraded_path.stem
-                for ext in ['.png', '.bmp', '.tif']:
+                for ext in ['.png', '.jpg', '.jpeg', '.bmp', '.tif']:
                     clean_path = clean_dir / (stem + ext)
                     if clean_path.exists():
                         pairs.append((degraded_path, clean_path))
@@ -238,52 +306,102 @@ class FMDDataset(PairedImageDataset):
     Noisy and averaged (clean) fluorescence microscopy images
 
     Download: https://github.com/yinhaoz/denoising-fluorescence
+
+    Flat 폴더 구조:
+        noisy/{microscopy_type}_{capture_id}_{filename}.png
+        clean/{microscopy_type}_{capture_id}.png
     """
 
     MICROSCOPY_TYPES = [
-        'Confocal_BPAE',
+        'Confocal_BPAE_B',
+        'Confocal_BPAE_G',
+        'Confocal_BPAE_R',
+        'Confocal_FISH',
         'Confocal_MICE',
-        'TwoPhoton_BPAE',
+        'TwoPhoton_BPAE_B',
+        'TwoPhoton_BPAE_G',
+        'TwoPhoton_BPAE_R',
         'TwoPhoton_MICE',
-        'WideField_BPAE',
+        'WideField_BPAE_B',
+        'WideField_BPAE_G',
+        'WideField_BPAE_R',
     ]
 
     def __init__(
         self,
         root: str,
-        split: str = 'train',
+        split: str = 'train',  # FMD는 split 구분 없음
         transform: Optional[Callable] = None,
         microscopy_type: Optional[str] = None,
     ):
         self.microscopy_type = microscopy_type
-        super().__init__(root, split, transform)
+        self.root = Path(root)
+        self.transform = transform
+        self.image_pairs = self._load_image_pairs()
 
     def _load_image_pairs(self) -> List[Tuple[Path, Path]]:
-        """Load FMD pairs"""
+        """Load FMD pairs from flat noisy/clean structure"""
         pairs = []
-        root = Path(self.root)
 
-        types = [self.microscopy_type] if self.microscopy_type else self.MICROSCOPY_TYPES
+        noisy_dir = self.root / 'noisy'
+        clean_dir = self.root / 'clean'
 
-        for mtype in types:
-            type_dir = root / mtype / self.split
+        if not noisy_dir.exists() or not clean_dir.exists():
+            return pairs
 
-            if not type_dir.exists():
+        # clean 파일 목록으로 prefix 매핑 생성
+        # clean 파일명: {microscopy_type}_{capture_id}.png
+        clean_prefixes = {}
+        for clean_path in clean_dir.glob('*.png'):
+            prefix = clean_path.stem  # e.g., Confocal_BPAE_B_1
+            clean_prefixes[prefix] = clean_path
+
+        # noisy 이미지 탐색
+        for noisy_path in sorted(noisy_dir.glob('*.png')):
+            # 파일명: {microscopy_type}_{capture_id}_{rest}.png
+            # e.g., Confocal_BPAE_B_1_HV110_P0500510000.png
+            noisy_stem = noisy_path.stem
+
+            # clean prefix와 매칭 찾기
+            matched_prefix = None
+            for prefix in clean_prefixes:
+                if noisy_stem.startswith(prefix + '_'):
+                    matched_prefix = prefix
+                    break
+
+            if matched_prefix is None:
                 continue
 
-            # FMD structure: type/split/noisy/ and type/split/gt/
-            noisy_dir = type_dir / 'noisy'
-            gt_dir = type_dir / 'gt'
+            clean_path = clean_prefixes[matched_prefix]
 
-            if not noisy_dir.exists():
-                continue
+            # microscopy_type 필터링
+            if self.microscopy_type:
+                if not matched_prefix.startswith(self.microscopy_type):
+                    continue
 
-            for noisy_path in sorted(noisy_dir.glob('*.png')):
-                gt_path = gt_dir / noisy_path.name
-                if gt_path.exists():
-                    pairs.append((noisy_path, gt_path))
+            pairs.append((noisy_path, clean_path))
 
         return pairs
+
+    def __len__(self) -> int:
+        return len(self.image_pairs)
+
+    def __getitem__(self, idx: int) -> dict:
+        degraded_path, clean_path = self.image_pairs[idx]
+
+        degraded = Image.open(degraded_path).convert('RGB')
+        clean = Image.open(clean_path).convert('RGB')
+
+        if self.transform:
+            degraded = self.transform(degraded)
+            clean = self.transform(clean)
+
+        return {
+            'degraded': degraded,
+            'clean': clean,
+            'path': str(degraded_path),
+            'domain': 'fmd',
+        }
 
 
 def get_dataset(domain: str, root: str, split: str = 'train', transform=None, **kwargs):
