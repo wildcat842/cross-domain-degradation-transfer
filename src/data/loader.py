@@ -55,7 +55,15 @@ def create_multi_domain_loader(
     transform = get_default_transform(image_size, train=(split == 'train'))
 
     domain_roots = {
+        # ImageNet-C base
         'imagenet': f'{data_root}/imagenet-c',
+        'imagenet-c': f'{data_root}/imagenet-c',
+        # ImageNet-C corruption categories (all use same root)
+        'imagenet-noise': f'{data_root}/imagenet-c',
+        'imagenet-blur': f'{data_root}/imagenet-c',
+        'imagenet-weather': f'{data_root}/imagenet-c',
+        'imagenet-digital': f'{data_root}/imagenet-c',
+        # Other domains
         'ldct': f'{data_root}/ldct',
         'dibco': f'{data_root}/dibco',
         'fmd': f'{data_root}/fmd',
@@ -119,7 +127,15 @@ def create_cross_domain_pairs(
     test_transform = get_default_transform(image_size, train=False)
 
     domain_roots = {
+        # ImageNet-C base
         'imagenet': f'{data_root}/imagenet-c',
+        'imagenet-c': f'{data_root}/imagenet-c',
+        # ImageNet-C corruption categories (all use same root)
+        'imagenet-noise': f'{data_root}/imagenet-c',
+        'imagenet-blur': f'{data_root}/imagenet-c',
+        'imagenet-weather': f'{data_root}/imagenet-c',
+        'imagenet-digital': f'{data_root}/imagenet-c',
+        # Other domains
         'ldct': f'{data_root}/ldct',
         'dibco': f'{data_root}/dibco',
         'fmd': f'{data_root}/fmd',

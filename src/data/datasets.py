@@ -106,18 +106,36 @@ class ImageNetCDataset(Dataset):
         'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression',  # Digital
     ]
 
+    # Corruption categories for domain separation
+    CORRUPTION_CATEGORIES = {
+        'noise': ['gaussian_noise', 'shot_noise', 'impulse_noise'],
+        'blur': ['defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur'],
+        'weather': ['snow', 'frost', 'fog', 'brightness'],
+        'digital': ['contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'],
+    }
+
+    # Tiny-ImageNet-C corruption categories
+    TINY_CORRUPTION_CATEGORIES = {
+        'noise': ['shot_noise', 'impulse_noise'],
+        'blur': ['defocus_blur', 'glass_blur', 'motion_blur'],
+        'weather': ['frost', 'brightness'],
+        'digital': ['contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'],
+    }
+
     def __init__(
         self,
         root: str,
         split: str = 'train',
         transform: Optional[Callable] = None,
         corruption_type: Optional[str] = None,
+        corruption_category: Optional[str] = None,  # 'noise', 'blur', 'weather', 'digital'
         severity: int = 3,
     ):
         self.root = Path(root)
         self.split = split
         self.transform = transform
         self.corruption_type = corruption_type
+        self.corruption_category = corruption_category
         self.severity = severity
 
         # Detect if this is Tiny-ImageNet-C structure
@@ -135,7 +153,18 @@ class ImageNetCDataset(Dataset):
 
         # Determine which corruptions to use
         available_corruptions = self.TINY_CORRUPTION_TYPES if self.is_tiny else self.CORRUPTION_TYPES
-        corruptions = [self.corruption_type] if self.corruption_type else available_corruptions
+        corruption_categories = self.TINY_CORRUPTION_CATEGORIES if self.is_tiny else self.CORRUPTION_CATEGORIES
+
+        # Priority: corruption_type > corruption_category > all
+        if self.corruption_type:
+            corruptions = [self.corruption_type]
+        elif self.corruption_category:
+            if self.corruption_category not in corruption_categories:
+                raise ValueError(f"Unknown category: {self.corruption_category}. "
+                               f"Available: {list(corruption_categories.keys())}")
+            corruptions = corruption_categories[self.corruption_category]
+        else:
+            corruptions = available_corruptions
 
         for corruption in corruptions:
             degraded_dir = self.base_dir / corruption / str(self.severity)
@@ -170,10 +199,18 @@ class ImageNetCDataset(Dataset):
         if self.transform:
             degraded = self.transform(degraded)
 
+        # Domain name reflects category if specified
+        if self.corruption_category:
+            domain_name = f'imagenet-{self.corruption_category}'
+        elif self.corruption_type:
+            domain_name = f'imagenet-{self.corruption_type}'
+        else:
+            domain_name = 'imagenet-c'
+
         result = {
             'degraded': degraded,
             'path': str(degraded_path),
-            'domain': 'imagenet-c',
+            'domain': domain_name,
         }
 
         if clean_path is not None:
@@ -405,9 +442,21 @@ class FMDDataset(PairedImageDataset):
 
 
 def get_dataset(domain: str, root: str, split: str = 'train', transform=None, **kwargs):
-    """Factory function to create dataset by domain name"""
+    """Factory function to create dataset by domain name
 
-    datasets = {
+    Supported domains:
+    - 'imagenet', 'imagenet-c': All ImageNet-C corruptions
+    - 'imagenet-noise': Noise corruptions only (gaussian, shot, impulse)
+    - 'imagenet-blur': Blur corruptions only (defocus, glass, motion, zoom)
+    - 'imagenet-weather': Weather corruptions only (snow, frost, fog, brightness)
+    - 'imagenet-digital': Digital corruptions only (contrast, elastic, pixelate, jpeg)
+    - 'ldct': Low-dose CT dataset
+    - 'dibco': Document binarization dataset
+    - 'fmd', 'microscopy': Fluorescence microscopy dataset
+    """
+
+    # Base dataset classes
+    base_datasets = {
         'imagenet': ImageNetCDataset,
         'imagenet-c': ImageNetCDataset,
         'ldct': LDCTDataset,
@@ -416,8 +465,23 @@ def get_dataset(domain: str, root: str, split: str = 'train', transform=None, **
         'microscopy': FMDDataset,
     }
 
-    domain_lower = domain.lower()
-    if domain_lower not in datasets:
-        raise ValueError(f"Unknown domain: {domain}. Available: {list(datasets.keys())}")
+    # ImageNet-C corruption category mappings
+    imagenet_categories = {
+        'imagenet-noise': 'noise',
+        'imagenet-blur': 'blur',
+        'imagenet-weather': 'weather',
+        'imagenet-digital': 'digital',
+    }
 
-    return datasets[domain_lower](root, split, transform, **kwargs)
+    domain_lower = domain.lower()
+
+    # Check for ImageNet category domains
+    if domain_lower in imagenet_categories:
+        category = imagenet_categories[domain_lower]
+        return ImageNetCDataset(root, split, transform, corruption_category=category, **kwargs)
+
+    # Check base datasets
+    if domain_lower in base_datasets:
+        return base_datasets[domain_lower](root, split, transform, **kwargs)
+
+    raise ValueError(f"Unknown domain: {domain}. Available: {list(base_datasets.keys()) + list(imagenet_categories.keys())}")
