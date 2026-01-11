@@ -153,24 +153,36 @@ class ImageNetCDataset(Dataset):
         self.images = self._load_images()
 
     def _build_clean_mapping(self) -> dict:
-        """Build a mapping from filename to clean image path"""
+        """Build a mapping from class name to list of clean image paths
+
+        For Tiny-ImageNet-C, corrupted images are organized by class:
+            Tiny-ImageNet-C/{corruption}/{severity}/{class}/test_XXX.JPEG
+
+        Clean images are in train folder by class:
+            tiny-imagenet-200/train/{class}/images/{class}_XXX.JPEG
+
+        We match by class, not by filename (since they don't correspond 1:1)
+        """
         mapping = {}
 
         if not self.is_tiny or not self.clean_root:
             return mapping
 
-        # Tiny-ImageNet-200 structure: test/images/*.JPEG
-        clean_images_dir = self.clean_root / 'test' / 'images'
+        # Tiny-ImageNet-200 train structure: train/{class}/images/*.JPEG
+        train_dir = self.clean_root / 'train'
 
-        if not clean_images_dir.exists():
-            # Try alternative structure: val/images/*.JPEG
-            clean_images_dir = self.clean_root / 'val' / 'images'
-
-        if clean_images_dir.exists():
-            for img_path in clean_images_dir.glob('*'):
-                if img_path.suffix.lower() in ['.jpeg', '.jpg', '.png']:
-                    # Map filename to path: test_123.JPEG -> /path/to/test_123.JPEG
-                    mapping[img_path.name.lower()] = img_path
+        if train_dir.exists():
+            for class_dir in train_dir.iterdir():
+                if class_dir.is_dir():
+                    class_name = class_dir.name
+                    images_dir = class_dir / 'images'
+                    if images_dir.exists():
+                        class_images = []
+                        for img_path in images_dir.glob('*'):
+                            if img_path.suffix.lower() in ['.jpeg', '.jpg', '.png']:
+                                class_images.append(img_path)
+                        if class_images:
+                            mapping[class_name] = class_images
 
         return mapping
 
@@ -193,6 +205,9 @@ class ImageNetCDataset(Dataset):
         else:
             corruptions = available_corruptions
 
+        # Track how many images per class we've seen (for cycling through clean images)
+        class_counters = {}
+
         for corruption in corruptions:
             degraded_dir = self.base_dir / corruption / str(self.severity)
 
@@ -205,13 +220,22 @@ class ImageNetCDataset(Dataset):
                     relative_path = degraded_path.relative_to(degraded_dir)
 
                     if self.is_tiny:
-                        # Tiny-ImageNet-C: use clean_mapping if available
-                        filename = degraded_path.name.lower()
-                        clean_path = self.clean_mapping.get(filename)
-                        if clean_path:
+                        # Tiny-ImageNet-C: match by CLASS, not filename
+                        # Path structure: Tiny-ImageNet-C/{corruption}/{severity}/{class}/test_XXX.JPEG
+                        # Extract class name from parent folder
+                        class_name = degraded_path.parent.name  # e.g., 'n01443537'
+
+                        if class_name in self.clean_mapping:
+                            # Get list of clean images for this class
+                            class_clean_images = self.clean_mapping[class_name]
+                            # Cycle through clean images for this class
+                            class_count = class_counters.get(class_name, 0)
+                            clean_idx = class_count % len(class_clean_images)
+                            clean_path = class_clean_images[clean_idx]
+                            class_counters[class_name] = class_count + 1
                             images.append((degraded_path, clean_path))
                         else:
-                            # No clean image found, store None (will use self-supervised)
+                            # No clean images for this class, use self-supervised
                             images.append((degraded_path, None))
                     else:
                         clean_dir = self.base_dir / 'clean'
