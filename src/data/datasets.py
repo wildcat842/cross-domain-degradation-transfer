@@ -77,48 +77,31 @@ class PairedImageDataset(Dataset):
 
 class ImageNetCDataset(Dataset):
     """
-    ImageNet-C / Tiny-ImageNet-C: Natural images with synthetic corruptions
+    ImageNet-C: Natural images with synthetic corruptions
 
-    Corruptions: noise, blur, weather, digital
+    Folder structure (new):
+        Corrupted: {root}/Corrupted_new/{corruption}/{severity}/*.JPEG
+        Clean:     {root}/GT/*.JPEG
+
+    Corruptions: noise, blur, weather, digital (excluding glass_blur, fog)
     Severity levels: 1-5
-
-    Supports two modes:
-    1. Paired mode (with clean): {root}/{corruption}/{severity}/{class}/{image}
-                                 {root}/clean/{class}/{image}
-    2. Degraded-only mode (Tiny-ImageNet-C): {root}/Tiny-ImageNet-C/{corruption}/{severity}/{class}/{image}
-       In this mode, uses different corruption as "target" for transfer learning
 
     Download: https://github.com/hendrycks/robustness
     """
 
+    # Available corruption types (excluding glass_blur and fog)
     CORRUPTION_TYPES = [
         'gaussian_noise', 'shot_noise', 'impulse_noise',  # Noise
-        'defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur',  # Blur
-        'snow', 'frost', 'fog', 'brightness',  # Weather
+        'defocus_blur', 'motion_blur', 'zoom_blur',  # Blur (no glass_blur)
+        'snow', 'frost', 'brightness',  # Weather (no fog)
         'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression',  # Digital
     ]
 
-    # Tiny-ImageNet-C available corruptions (11 types)
-    TINY_CORRUPTION_TYPES = [
-        'shot_noise', 'impulse_noise',  # Noise
-        'defocus_blur', 'glass_blur', 'motion_blur',  # Blur
-        'frost', 'brightness',  # Weather
-        'contrast', 'elastic_transform', 'pixelate', 'jpeg_compression',  # Digital
-    ]
-
-    # Corruption categories for domain separation
+    # Corruption categories for domain separation (excluding glass_blur and fog)
     CORRUPTION_CATEGORIES = {
         'noise': ['gaussian_noise', 'shot_noise', 'impulse_noise'],
-        'blur': ['defocus_blur', 'glass_blur', 'motion_blur', 'zoom_blur'],
-        'weather': ['snow', 'frost', 'fog', 'brightness'],
-        'digital': ['contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'],
-    }
-
-    # Tiny-ImageNet-C corruption categories
-    TINY_CORRUPTION_CATEGORIES = {
-        'noise': ['shot_noise', 'impulse_noise'],
-        'blur': ['defocus_blur', 'glass_blur', 'motion_blur'],
-        'weather': ['frost', 'brightness'],
+        'blur': ['defocus_blur', 'motion_blur', 'zoom_blur'],  # no glass_blur
+        'weather': ['snow', 'frost', 'brightness'],  # no fog
         'digital': ['contrast', 'elastic_transform', 'pixelate', 'jpeg_compression'],
     }
 
@@ -130,7 +113,7 @@ class ImageNetCDataset(Dataset):
         corruption_type: Optional[str] = None,
         corruption_category: Optional[str] = None,  # 'noise', 'blur', 'weather', 'digital'
         severity: int = 3,
-        clean_root: Optional[str] = None,  # Path to clean images (e.g., tiny-imagenet-200)
+        **kwargs,  # For backward compatibility
     ):
         self.root = Path(root)
         self.split = split
@@ -138,110 +121,68 @@ class ImageNetCDataset(Dataset):
         self.corruption_type = corruption_type
         self.corruption_category = corruption_category
         self.severity = severity
-        self.clean_root = Path(clean_root) if clean_root else None
 
-        # Detect if this is Tiny-ImageNet-C structure
-        self.is_tiny = (self.root / 'Tiny-ImageNet-C').exists()
-        if self.is_tiny:
-            self.base_dir = self.root / 'Tiny-ImageNet-C'
-        else:
-            self.base_dir = self.root
+        # New folder structure:
+        # Corrupted: {root}/Corrupted_new/{corruption}/{severity}/*.JPEG
+        # Clean: {root}/GT/*.JPEG
+        self.corrupted_dir = self.root / 'Corrupted_new'
+        self.clean_dir = self.root / 'GT'
 
-        # Build clean image mapping for Tiny-ImageNet-C
+        # Build clean image mapping (filename -> path)
         self.clean_mapping = self._build_clean_mapping()
 
         self.images = self._load_images()
 
     def _build_clean_mapping(self) -> dict:
-        """Build a mapping from class name to list of clean image paths
+        """Build a mapping from filename to clean image path
 
-        For Tiny-ImageNet-C, corrupted images are organized by class:
-            Tiny-ImageNet-C/{corruption}/{severity}/{class}/test_XXX.JPEG
-
-        Clean images are in train folder by class:
-            tiny-imagenet-200/train/{class}/images/{class}_XXX.JPEG
-
-        We match by class, not by filename (since they don't correspond 1:1)
+        Clean images are in GT folder with flat structure:
+            GT/*.JPEG (same filenames as corrupted images)
         """
         mapping = {}
 
-        if not self.is_tiny or not self.clean_root:
+        if not self.clean_dir.exists():
             return mapping
 
-        # Tiny-ImageNet-200 train structure: train/{class}/images/*.JPEG
-        train_dir = self.clean_root / 'train'
-
-        if train_dir.exists():
-            for class_dir in train_dir.iterdir():
-                if class_dir.is_dir():
-                    class_name = class_dir.name
-                    images_dir = class_dir / 'images'
-                    if images_dir.exists():
-                        class_images = []
-                        for img_path in images_dir.glob('*'):
-                            if img_path.suffix.lower() in ['.jpeg', '.jpg', '.png']:
-                                class_images.append(img_path)
-                        if class_images:
-                            mapping[class_name] = class_images
+        for img_path in self.clean_dir.glob('*'):
+            if img_path.suffix.lower() in ['.jpeg', '.jpg', '.png']:
+                # Map filename to path
+                mapping[img_path.name] = img_path
 
         return mapping
 
     def _load_images(self) -> List[Tuple[Path, Optional[Path]]]:
-        """Load images (paired or degraded-only)"""
+        """Load paired corrupted-clean images"""
         images = []
-
-        # Determine which corruptions to use
-        available_corruptions = self.TINY_CORRUPTION_TYPES if self.is_tiny else self.CORRUPTION_TYPES
-        corruption_categories = self.TINY_CORRUPTION_CATEGORIES if self.is_tiny else self.CORRUPTION_CATEGORIES
 
         # Priority: corruption_type > corruption_category > all
         if self.corruption_type:
             corruptions = [self.corruption_type]
         elif self.corruption_category:
-            if self.corruption_category not in corruption_categories:
+            if self.corruption_category not in self.CORRUPTION_CATEGORIES:
                 raise ValueError(f"Unknown category: {self.corruption_category}. "
-                               f"Available: {list(corruption_categories.keys())}")
-            corruptions = corruption_categories[self.corruption_category]
+                               f"Available: {list(self.CORRUPTION_CATEGORIES.keys())}")
+            corruptions = self.CORRUPTION_CATEGORIES[self.corruption_category]
         else:
-            corruptions = available_corruptions
-
-        # Track how many images per class we've seen (for cycling through clean images)
-        class_counters = {}
+            corruptions = self.CORRUPTION_TYPES
 
         for corruption in corruptions:
-            degraded_dir = self.base_dir / corruption / str(self.severity)
+            degraded_dir = self.corrupted_dir / corruption / str(self.severity)
 
             if not degraded_dir.exists():
                 continue
 
-            for degraded_path in sorted(degraded_dir.glob('**/*')):
+            for degraded_path in sorted(degraded_dir.glob('*')):
                 if degraded_path.suffix.lower() in ['.png', '.jpg', '.jpeg']:
-                    # Check for paired clean image
-                    relative_path = degraded_path.relative_to(degraded_dir)
+                    filename = degraded_path.name
 
-                    if self.is_tiny:
-                        # Tiny-ImageNet-C: match by CLASS, not filename
-                        # Path structure: Tiny-ImageNet-C/{corruption}/{severity}/{class}/test_XXX.JPEG
-                        # Extract class name from parent folder
-                        class_name = degraded_path.parent.name  # e.g., 'n01443537'
-
-                        if class_name in self.clean_mapping:
-                            # Get list of clean images for this class
-                            class_clean_images = self.clean_mapping[class_name]
-                            # Cycle through clean images for this class
-                            class_count = class_counters.get(class_name, 0)
-                            clean_idx = class_count % len(class_clean_images)
-                            clean_path = class_clean_images[clean_idx]
-                            class_counters[class_name] = class_count + 1
-                            images.append((degraded_path, clean_path))
-                        else:
-                            # No clean images for this class, use self-supervised
-                            images.append((degraded_path, None))
+                    # Find matching clean image by filename
+                    if filename in self.clean_mapping:
+                        clean_path = self.clean_mapping[filename]
+                        images.append((degraded_path, clean_path))
                     else:
-                        clean_dir = self.base_dir / 'clean'
-                        clean_path = clean_dir / relative_path
-                        if clean_path.exists():
-                            images.append((degraded_path, clean_path))
+                        # No clean image found, use self-supervised
+                        images.append((degraded_path, None))
 
         return images
 
