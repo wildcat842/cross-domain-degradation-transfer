@@ -27,14 +27,14 @@ data:
   image_size: 64  # Tiny-ImageNet-C uses 64x64 images
   num_workers: 4
 
-# Source domains (ImageNet-C by corruption category)
+# Multi-domain training with corruption categories
 # Each category forms a distinct degradation subspace
-source_domains:
+domains:
   - imagenet-noise    # gaussian, shot, impulse noise
   - imagenet-blur     # defocus, glass, motion, zoom blur
   - imagenet-weather  # snow, frost, fog, brightness
 
-# Target domain for transfer
+# Target domain for transfer (requires separate cross-domain experiment)
 target_domains:
   - ldct              # Medical CT noise (similar to noise domain)
 
