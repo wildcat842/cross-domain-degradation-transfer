@@ -130,6 +130,7 @@ class ImageNetCDataset(Dataset):
         corruption_type: Optional[str] = None,
         corruption_category: Optional[str] = None,  # 'noise', 'blur', 'weather', 'digital'
         severity: int = 3,
+        clean_root: Optional[str] = None,  # Path to clean images (e.g., tiny-imagenet-200)
     ):
         self.root = Path(root)
         self.split = split
@@ -137,6 +138,7 @@ class ImageNetCDataset(Dataset):
         self.corruption_type = corruption_type
         self.corruption_category = corruption_category
         self.severity = severity
+        self.clean_root = Path(clean_root) if clean_root else None
 
         # Detect if this is Tiny-ImageNet-C structure
         self.is_tiny = (self.root / 'Tiny-ImageNet-C').exists()
@@ -145,7 +147,32 @@ class ImageNetCDataset(Dataset):
         else:
             self.base_dir = self.root
 
+        # Build clean image mapping for Tiny-ImageNet-C
+        self.clean_mapping = self._build_clean_mapping()
+
         self.images = self._load_images()
+
+    def _build_clean_mapping(self) -> dict:
+        """Build a mapping from filename to clean image path"""
+        mapping = {}
+
+        if not self.is_tiny or not self.clean_root:
+            return mapping
+
+        # Tiny-ImageNet-200 structure: test/images/*.JPEG
+        clean_images_dir = self.clean_root / 'test' / 'images'
+
+        if not clean_images_dir.exists():
+            # Try alternative structure: val/images/*.JPEG
+            clean_images_dir = self.clean_root / 'val' / 'images'
+
+        if clean_images_dir.exists():
+            for img_path in clean_images_dir.glob('*'):
+                if img_path.suffix.lower() in ['.jpeg', '.jpg', '.png']:
+                    # Map filename to path: test_123.JPEG -> /path/to/test_123.JPEG
+                    mapping[img_path.name.lower()] = img_path
+
+        return mapping
 
     def _load_images(self) -> List[Tuple[Path, Optional[Path]]]:
         """Load images (paired or degraded-only)"""
@@ -178,8 +205,14 @@ class ImageNetCDataset(Dataset):
                     relative_path = degraded_path.relative_to(degraded_dir)
 
                     if self.is_tiny:
-                        # Tiny-ImageNet-C: no clean, store None
-                        images.append((degraded_path, None))
+                        # Tiny-ImageNet-C: use clean_mapping if available
+                        filename = degraded_path.name.lower()
+                        clean_path = self.clean_mapping.get(filename)
+                        if clean_path:
+                            images.append((degraded_path, clean_path))
+                        else:
+                            # No clean image found, store None (will use self-supervised)
+                            images.append((degraded_path, None))
                     else:
                         clean_dir = self.base_dir / 'clean'
                         clean_path = clean_dir / relative_path

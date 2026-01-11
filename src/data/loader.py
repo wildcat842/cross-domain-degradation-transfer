@@ -69,11 +69,19 @@ def create_multi_domain_loader(
         'fmd': f'{data_root}/fmd',
     }
 
+    # Clean image root for Tiny-ImageNet-C
+    imagenet_clean_root = f'{data_root}/imagenet-c/tiny-imagenet-200'
+
     for domain in domains:
         root = domain_roots.get(domain, f'{data_root}/{domain}')
 
+        # Add clean_root for ImageNet domains
+        extra_kwargs = {}
+        if domain.startswith('imagenet'):
+            extra_kwargs['clean_root'] = imagenet_clean_root
+
         try:
-            dataset = get_dataset(domain, root, split, transform)
+            dataset = get_dataset(domain, root, split, transform, **extra_kwargs)
 
             if len(dataset) > 0:
                 # For small datasets, adjust batch_size and drop_last
@@ -141,9 +149,18 @@ def create_cross_domain_pairs(
         'fmd': f'{data_root}/fmd',
     }
 
+    # Clean image root for Tiny-ImageNet-C
+    imagenet_clean_root = f'{data_root}/imagenet-c/tiny-imagenet-200'
+
+    def get_extra_kwargs(domain):
+        """Get extra kwargs for ImageNet domains"""
+        if domain.startswith('imagenet'):
+            return {'clean_root': imagenet_clean_root}
+        return {}
+
     # Source domain training data
     source_root = domain_roots.get(source_domain, f'{data_root}/{source_domain}')
-    source_dataset = get_dataset(source_domain, source_root, 'train', train_transform)
+    source_dataset = get_dataset(source_domain, source_root, 'train', train_transform, **get_extra_kwargs(source_domain))
     source_loader = DataLoader(
         source_dataset,
         batch_size=batch_size,
@@ -159,7 +176,7 @@ def create_cross_domain_pairs(
     # Few-shot loader (if n_shots > 0)
     fewshot_loader = None
     if n_shots > 0:
-        target_train = get_dataset(target_domain, target_root, 'train', train_transform)
+        target_train = get_dataset(target_domain, target_root, 'train', train_transform, **get_extra_kwargs(target_domain))
 
         # Random subset for few-shot
         indices = random.sample(range(len(target_train)), min(n_shots, len(target_train)))
@@ -174,7 +191,7 @@ def create_cross_domain_pairs(
         )
 
     # Target test loader
-    target_test = get_dataset(target_domain, target_root, 'test', test_transform)
+    target_test = get_dataset(target_domain, target_root, 'test', test_transform, **get_extra_kwargs(target_domain))
     test_loader = DataLoader(
         target_test,
         batch_size=batch_size,
