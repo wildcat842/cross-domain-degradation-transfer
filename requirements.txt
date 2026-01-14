@@ -32,3 +32,6 @@ tqdm>=4.65.0
 # Testing
 pytest>=7.0.0
 pytest-cov>=4.0.0
+
+# imagecorruptions for data augmentation 
+imagecorruptions==1.1.2

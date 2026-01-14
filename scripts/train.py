@@ -16,13 +16,14 @@ from datetime import datetime
 import yaml
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import CrossDomainDegradationTransfer
+from src.models import CrossDomainDegradationTransfer, SimpleDenoiser
 from src.losses import ICMLLoss
 from src.data import create_multi_domain_loader, create_cross_domain_pairs
 from src.data.loader import MultiDomainIterator
@@ -37,6 +38,9 @@ def parse_args():
                         help='Path to checkpoint to resume from')
     parser.add_argument('--exp_name', type=str, default=None,
                         help='Experiment name')
+    parser.add_argument('--model', type=str, default='cddt',
+                        choices=['cddt', 'denoiser'],
+                        help='Model to train')
 
     # Cross-domain transfer settings
     parser.add_argument('--source_domain', type=str, default=None,
@@ -63,11 +67,15 @@ def train_epoch(
     device: torch.device,
     epoch: int,
     config: dict,
+    model_type: str,
     writer: SummaryWriter = None,
 ) -> dict:
     """Train for one epoch with multi-domain data"""
     model.train()
-    tracker = MetricTracker(['loss', 'recon', 'kl', 'disentangle', 'psnr'])
+    if model_type == 'denoiser':
+        tracker = MetricTracker(['loss', 'psnr'])
+    else:
+        tracker = MetricTracker(['loss', 'recon', 'kl', 'disentangle', 'psnr'])
 
     n_iters = config['training'].get('iters_per_epoch', 1000)
     pbar = tqdm(range(n_iters), desc=f'Epoch {epoch}')
@@ -82,7 +90,12 @@ def train_epoch(
         outputs = model(degraded)
 
         # Compute loss
-        losses = criterion(outputs, clean)
+        if model_type == 'denoiser':
+            restored = outputs['restored'] if isinstance(outputs, dict) else outputs
+            total_loss = F.mse_loss(restored, clean)
+            losses = {'total': total_loss}
+        else:
+            losses = criterion(outputs, clean)
 
         # Backward
         optimizer.zero_grad()
@@ -91,13 +104,15 @@ def train_epoch(
 
         # Track metrics
         tracker.update('loss', losses['total'])
-        tracker.update('recon', losses['recon'])
-        tracker.update('kl', losses['kl'])
-        tracker.update('disentangle', losses['disentangle'])
+        if model_type != 'denoiser':
+            tracker.update('recon', losses['recon'])
+            tracker.update('kl', losses['kl'])
+            tracker.update('disentangle', losses['disentangle'])
 
         # Compute PSNR
         with torch.no_grad():
-            restored = (outputs['restored'] + 1) / 2
+            restored = outputs['restored'] if isinstance(outputs, dict) else outputs
+            restored = (restored + 1) / 2
             target = (clean + 1) / 2
             psnr = compute_psnr(restored, target)
             tracker.update('psnr', psnr)
@@ -109,7 +124,8 @@ def train_epoch(
             step = epoch * n_iters + i
             writer.add_scalar('train/loss', losses['total'].item(), step)
             writer.add_scalar('train/psnr', psnr.item(), step)
-            writer.add_scalar('train/domain', hash(domain) % 100, step)
+            if model_type != 'denoiser':
+                writer.add_scalar('train/domain', hash(domain) % 100, step)
 
     return tracker.compute()
 
@@ -119,6 +135,7 @@ def validate(
     loaders: dict,
     criterion: nn.Module,
     device: torch.device,
+    model_type: str,
 ) -> dict:
     """Validate on all domains"""
     model.eval()
@@ -133,7 +150,8 @@ def validate(
                 clean = batch['clean'].to(device)
 
                 outputs = model(degraded)
-                restored = (outputs['restored'] + 1) / 2
+                restored = outputs['restored'] if isinstance(outputs, dict) else outputs
+                restored = (restored + 1) / 2
                 target = (clean + 1) / 2
 
                 tracker.update('psnr', compute_psnr(restored, target))
@@ -185,21 +203,27 @@ def main():
     print(f"Using device: {device}")
 
     # Model
-    model = CrossDomainDegradationTransfer(
-        deg_dim=config['model']['deg_dim'],
-        content_dim=config['model']['content_dim'],
-        n_degradation_types=config['model']['n_degradation_types'],
-    ).to(device)
+    if args.model == 'denoiser':
+        model = SimpleDenoiser().to(device)
+    else:
+        model = CrossDomainDegradationTransfer(
+            deg_dim=config['model']['deg_dim'],
+            content_dim=config['model']['content_dim'],
+            n_degradation_types=config['model']['n_degradation_types'],
+        ).to(device)
 
     print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
 
     # Loss
-    criterion = ICMLLoss(
-        recon_weight=config['loss']['recon_weight'],
-        kl_weight=config['loss']['kl_weight'],
-        disentangle_weight=config['loss']['disentangle_weight'],
-        domain_weight=config['loss']['domain_weight'],
-    )
+    if args.model == 'denoiser':
+        criterion = None
+    else:
+        criterion = ICMLLoss(
+            recon_weight=config['loss']['recon_weight'],
+            kl_weight=config['loss']['kl_weight'],
+            disentangle_weight=config['loss']['disentangle_weight'],
+            domain_weight=config['loss']['domain_weight'],
+        )
 
     # Optimizer
     optimizer = optim.Adam(
@@ -273,12 +297,12 @@ def main():
     for epoch in range(start_epoch, config['training']['epochs']):
         # Train
         train_metrics = train_epoch(
-            model, iterator, criterion, optimizer, device, epoch, config, writer
+            model, iterator, criterion, optimizer, device, epoch, config, args.model, writer
         )
         print(f"Epoch {epoch} - Train: {train_metrics}")
 
         # Validate
-        val_results = validate(model, val_loaders, criterion, device)
+        val_results = validate(model, val_loaders, criterion, device, args.model)
         print(f"Epoch {epoch} - Val: {val_results}")
 
         # Log validation results

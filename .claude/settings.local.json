@@ -27,7 +27,11 @@
       "Bash(.venv/Scripts/pip install nbconvert)",
       "Bash(ls:*)",
       "Bash(unzip:*)",
-      "Bash(tar:*)"
+      "Bash(tar:*)",
+      "Bash(dir:*)",
+      "Bash(find:*)",
+      "Bash(for dir in */3)",
+      "Bash(ping:*)"
     ]
   }
 }

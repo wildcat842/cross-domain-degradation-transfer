@@ -1,0 +1,36 @@
+# 폴더 구조 확인
+imagenet-c/
+├── Tiny-ImageNet-C/          # Corrupted (이미 있음)
+│   ├── impulse_noise/
+│   ├── shot_noise/
+│   └── ...
+└── tiny-imagenet-200/        # Clean (새로 다운로드)
+    ├── train/
+    ├── val/
+    └── wnids.txt
+
+# Tiny-ImageNet-C의 이미지와 Clean 이미지 매칭
+# 
+# Corrupted: tiny-imagenet-c/impulse_noise/1/n01443537/test_8.JPEG
+# Clean:     tiny-imagenet-200/test/images/test_8.JPEG
+#
+# 같은 파일명으로 매칭 가능!
+
+
+## 노트북에서 html 로 보낼때 (다크모드가 안되게 하는 법)
+# 터미널에서 실행
+jupyter nbconvert --to html --template classic 
+
+## 데이터 심볼릭 링크를 만들때
+# 윈도우즈 파워셀
+cmd /c mklink /D "C:\Users\이름\.claude-worktrees\work\upbeat-morse\data" "C:\디렉토리\work\data"
+
+# Noise → Blur cross-corruption transfer
+  python scripts/train.py --config configs/corruption_transfer.yaml \
+      --source_domain imagenet-noise --target_domain imagenet-blur
+
+  # Noise → LDCT cross-domain transfer
+  python scripts/train.py --config configs/corruption_transfer.yaml \
+      --source_domain imagenet-noise --target_domain ldct
+
+python scripts/train.py --config       configs/corruption_transfer.yaml

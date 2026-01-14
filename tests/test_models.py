@@ -10,6 +10,7 @@ from src.models import (
     ContentEncoder,
     CrossDomainDecoder,
     CrossDomainDegradationTransfer,
+    SimpleDenoiser,
 )
 
 
@@ -197,3 +198,26 @@ class TestCrossDomainDegradationTransfer:
                 break
 
         assert has_grad, "No gradients found in model parameters"
+
+
+class TestSimpleDenoiser:
+    """Smoke tests for SimpleDenoiser"""
+
+    def test_forward_shapes(self, sample_batch, device):
+        model = SimpleDenoiser().to(device)
+        x = sample_batch.to(device)
+
+        outputs = model(x)
+
+        assert 'restored' in outputs
+        assert 'noise' in outputs
+        assert outputs['restored'].shape == x.shape
+        assert outputs['noise'].shape == x.shape
+
+    def test_denoise_method(self, sample_batch, device):
+        model = SimpleDenoiser().to(device)
+        x = sample_batch.to(device)
+
+        restored = model.denoise(x)
+
+        assert restored.shape == x.shape
