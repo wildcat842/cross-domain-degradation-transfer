@@ -125,7 +125,7 @@ class ImageNetCDataset(Dataset):
         # New folder structure:
         # Corrupted: {root}/Corrupted_new/{corruption}/{severity}/*.JPEG
         # Clean: {root}/GT/*.JPEG
-        self.corrupted_dir = self.root / 'Corrupted_new'
+        self.corrupted_dir = self.root / 'Corrupted_New'
         self.clean_dir = self.root / 'GT'
 
         # Build clean image mapping (filename -> path)

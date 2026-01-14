@@ -96,6 +96,13 @@ def create_multi_domain_loader(
         except Exception as e:
             print(f"[{domain}] Error loading dataset: {e}")
 
+    if len(loaders) == 0:
+        checked = ", ".join([f"{d} -> {domain_roots.get(d, f'{data_root}/{d}')}" for d in domains])
+        raise FileNotFoundError(
+            f"No datasets found for requested domains {domains}. Checked: {checked}. "
+            "Please verify the dataset directories or set the correct 'data_root' in your config."
+        )
+
     return loaders
 
 
@@ -204,9 +211,17 @@ class MultiDomainIterator:
         self.iterators = {k: iter(v) for k, v in loaders.items()}
         self.domains = list(loaders.keys())
 
+        if not self.domains:
+            raise ValueError(
+                "No domain loaders were provided to MultiDomainIterator. "
+                "Did 'create_multi_domain_loader' find any datasets? Check your data paths."
+            )
+
         if sampling == 'proportional':
             sizes = [len(loaders[d].dataset) for d in self.domains]
             total = sum(sizes)
+            if total == 0:
+                raise ValueError("Found domain loaders but total dataset size is zero. Check datasets.")
             self.probs = [s / total for s in sizes]
         else:
             self.probs = [1.0 / len(self.domains)] * len(self.domains)

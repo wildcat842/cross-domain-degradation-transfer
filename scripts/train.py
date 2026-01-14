@@ -277,7 +277,11 @@ def main():
         )
 
     # Multi-domain iterator
-    iterator = MultiDomainIterator(train_loaders)
+    try:
+        iterator = MultiDomainIterator(train_loaders)
+    except (ValueError, FileNotFoundError) as e:
+        print(f"Data loader error: {e}")
+        sys.exit(1)
 
     # Resume from checkpoint
     start_epoch = 0

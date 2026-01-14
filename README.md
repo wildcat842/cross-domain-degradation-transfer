@@ -41,11 +41,14 @@ python -m venv venv
 source venv/bin/activate
 ```
 
-#### Conda 사용 시
+#### .venv 사용 (추천 방식)
+
 ```bash
-# Conda 환경 생성 (Python 3.10 ~ 3.12 지원)
-conda create -n cddt python=3.12
-conda activate cddt
+uv venv --python 3.12   ## python 3.12 셋업
+
+# 가상 환경 활성화 (macOS / Linux)
+source .venv/bin/activate
+. .venv/bin/activate 
 ```
 
 ### 3. 의존성 설치
@@ -54,8 +57,12 @@ conda activate cddt
 # 기본 설치
 pip install -r requirements.txt
 
+uv pip install -r requirements.txt   ## uv 가성환경일때 (추천)
+
 # PyTorch (CUDA 지원 시)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118  ## 가상환경일때 (추천)
+
 
 # PyTorch (CPU only)
 pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
@@ -142,6 +149,24 @@ git pull --rebase
 ```bash
 git rebase --abort      # rebase 취소
 ```
+
+### 텐서 보드
+```bash
+## 해당 로그 디렉토리
+tensorboard --logdir .
+
+## 프로젝트 루트 디렉토리에서 
+tensorboard --logdir experiments/exp001/logs
+
+```
+
+### notebook  (현재 설치된 환경에 맞춰서 실행하기 - uv venv 로 설정한 경우)
+```
+source .venv/bin/activate  
+uv pip install ipykernel
+python -m ipykernel install --user --name cross-domain-venv --display-name "Python (.venv)"
+```
+
 
 ## Project Structure
 
