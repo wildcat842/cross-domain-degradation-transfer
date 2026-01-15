@@ -16,55 +16,55 @@ training:
   batch_size: 16
   learning_rate: 0.0001
   epochs: 100
-  optimizer: adam
-  scheduler: cosine
+  # optimizer: adam
+  # scheduler: cosine
   iters_per_epoch: 1000
 
 data:
   train_dir: data/train
-  val_dir: data/val
-  test_dir: data/test
+  # val_dir: data/val
+  # test_dir: data/test
   image_size: 64  # Tiny-ImageNet-C uses 64x64 images
   num_workers: 4
 
 # Multi-domain training with corruption categories
 # Each category forms a distinct degradation subspace
-domains:
-  - imagenet-noise    # gaussian, shot, impulse noise
-  - imagenet-blur     # defocus, glass, motion, zoom blur
-  - imagenet-weather  # snow, frost, fog, brightness
+# domains:
+#   - imagenet-noise    # gaussian, shot, impulse noise
+#   - imagenet-blur     # defocus, glass, motion, zoom blur
+#   - imagenet-weather  # snow, frost, fog, brightness
 
 # Target domain for transfer (requires separate cross-domain experiment)
-target_domains:
-  - ldct              # Medical CT noise (similar to noise domain)
+# target_domains:
+#   - ldct              # Medical CT noise (similar to noise domain)
 
 # Zero-shot evaluation only (small datasets)
-eval_only_domains:
-  - dibco             # 10 samples - document degradation
-  - fmd               # Microscopy - subset for evaluation
+# eval_only_domains:
+#   - dibco             # 10 samples - document degradation
+#   - fmd               # Microscopy - subset for evaluation
 
 # Cross-corruption transfer experiments
 # Tests whether degradation representations transfer between corruption types
-cross_corruption:
-  # Within ImageNet-C transfers
-  - source: imagenet-noise
-    target: imagenet-blur
-  - source: imagenet-blur
-    target: imagenet-noise
-  - source: imagenet-noise
-    target: imagenet-weather
+# cross_corruption:
+#   # Within ImageNet-C transfers
+#   - source: imagenet-noise
+#     target: imagenet-blur
+#   - source: imagenet-blur
+#     target: imagenet-noise
+#   - source: imagenet-noise
+#     target: imagenet-weather
 
-  # Cross-domain transfers (ImageNet -> Medical)
-  - source: imagenet-noise
-    target: ldct
-  - source: imagenet-blur
-    target: ldct
+#   # Cross-domain transfers (ImageNet -> Medical)
+#   - source: imagenet-noise
+#     target: ldct
+#   - source: imagenet-blur
+#     target: ldct
 
 # Few-shot settings for target domain adaptation
-n_shots: [0, 10, 100]
+# n_shots: [0, 10, 100]
 
 experiment:
   name: corruption_transfer
   save_dir: experiments/corruption_transfer/
   log_interval: 100
-  save_interval: 10
+  # save_interval: 10

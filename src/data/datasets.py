@@ -79,9 +79,9 @@ class ImageNetCDataset(Dataset):
     """
     ImageNet-C: Natural images with synthetic corruptions
 
-    Folder structure (new):
-        Corrupted: {root}/Corrupted_new/{corruption}/{severity}/*.JPEG
-        Clean:     {root}/GT/*.JPEG
+    Folder structure (updated):
+        Corrupted: {root}/Corrupted/{split}/{corruption}/{severity}/*.JPEG
+        Clean:     {root}/tiny-imagenet-200/{split}/**/*.JPEG
 
     Corruptions: noise, blur, weather, digital (excluding glass_blur, fog)
     Severity levels: 1-5
@@ -122,11 +122,11 @@ class ImageNetCDataset(Dataset):
         self.corruption_category = corruption_category
         self.severity = severity
 
-        # New folder structure:
-        # Corrupted: {root}/Corrupted_new/{corruption}/{severity}/*.JPEG
-        # Clean: {root}/GT/*.JPEG
-        self.corrupted_dir = self.root / 'Corrupted_New'
-        self.clean_dir = self.root / 'GT'
+        # Updated folder structure:
+        # Corrupted: {root}/Corrupted/{split}/{corruption}/{severity}/*.JPEG
+        # Clean:     {root}/tiny-imagenet-200/{split}/**/*.JPEG
+        self.corrupted_dir = self.root / 'Corrupted' / self.split
+        self.clean_dir = self.root / 'tiny-imagenet-200' / self.split
 
         # Build clean image mapping (filename -> path)
         self.clean_mapping = self._build_clean_mapping()
@@ -136,15 +136,14 @@ class ImageNetCDataset(Dataset):
     def _build_clean_mapping(self) -> dict:
         """Build a mapping from filename to clean image path
 
-        Clean images are in GT folder with flat structure:
-            GT/*.JPEG (same filenames as corrupted images)
+        Clean images are in tiny-imagenet-200/{split}/**/*.JPEG (nested structure)
         """
         mapping = {}
 
         if not self.clean_dir.exists():
             return mapping
 
-        for img_path in self.clean_dir.glob('*'):
+        for img_path in self.clean_dir.rglob('*'):
             if img_path.suffix.lower() in ['.jpeg', '.jpg', '.png']:
                 # Map filename to path
                 mapping[img_path.name] = img_path

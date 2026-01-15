@@ -46,7 +46,8 @@ def apply_corruptions(
         corruptions = ALL_CORRUPTIONS
 
     # Get all JPEG files
-    image_files = list(gt_path.glob('*.JPEG')) + list(gt_path.glob('*.jpeg')) + list(gt_path.glob('*.jpg'))
+    image_files = list(gt_path.rglob('*.JPEG')) + list(gt_path.rglob('*.jpeg')) + list(gt_path.rglob('*.jpg'))
+    image_files = list(set(image_files))  # Remove duplicates if any
 
     if max_images:
         image_files = image_files[:max_images]
@@ -86,9 +87,9 @@ def apply_corruptions(
 
 def main():
     parser = argparse.ArgumentParser(description='Apply corruptions to GT images')
-    parser.add_argument('--gt_dir', type=str, default='data/imagenet-c/GT',
+    parser.add_argument('--gt_dir', type=str, 
                         help='Directory containing clean GT images')
-    parser.add_argument('--output_dir', type=str, default='data/imagenet-c/Corrupted',
+    parser.add_argument('--output_dir', type=str, 
                         help='Output directory for corrupted images')
     parser.add_argument('--corruptions', type=str, nargs='+', default=None,
                         help='Corruption types to apply (default: all)')

@@ -1,5 +1,5 @@
-# Cross-Domain Degradation Transfer Learning
-# Default Configuration
+# Cross-Corruption Transfer Experiment Configuration
+# Separates ImageNet-C by corruption category for better degradation disentanglement
 
 model:
   deg_dim: 256
@@ -16,26 +16,20 @@ training:
   batch_size: 16
   learning_rate: 0.0001
   epochs: 100
-  optimizer: adam
-  scheduler: cosine
   iters_per_epoch: 1000
 
 data:
   train_dir: data/train
   val_dir: data/val
-  test_dir: data/test
-  image_size: 64  # Tiny-ImageNet-C uses 64x64 images
+  image_size: 64   
   num_workers: 4
 
-# Multi-domain training
 domains:
-  - imagenet
-  - ldct
-  - dibco
-  - fmd
+   - imagenet-noise    # gaussian, shot, impulse noise
+   - imagenet-blur     # defocus, glass, motion, zoom blur
+   - imagenet-weather  # snow, frost, fog, brightness
 
 experiment:
-  name: cddt_baseline
-  save_dir: experiments/
+  name: corruption_transfer
+  save_dir: experiments/default_imagenet/
   log_interval: 100
-  save_interval: 10

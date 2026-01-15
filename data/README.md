@@ -6,8 +6,8 @@
 
 | 데이터셋 | 이미지 수 | 설명 |
 |----------|-----------|------|
-| **ImageNet-C** | 110,000 | 11 corruptions x 5 severities x 200 classes (64x64) |
-| **LDCT** | 3,584 paired | full_dose + synthetic low_dose (362x362) |
+| **ImageNet-C** | 110,000+ (clean) + 150,000+ (corrupted) | Clean Tiny ImageNet + 15 corruptions x 5 severities x ~10,000 images (현재 severity 3만 적용, Corrupted/ 및 Corrupted_New/에 저장) |
+| **LDCT** | 3,584+ paired | full_dose + synthetic low_dose (362x362) |
 | **DIBCO** | 10 | 문서 이미지 + GT binarization |
 | **FMD** | 3,000 | 현미경 이미지 (50 noisy → 1 clean) |
 
@@ -16,20 +16,50 @@
 ```
 data/
 ├── imagenet-c/              # Natural images (corruption)
-│   └── Tiny-ImageNet-C/
-│       └── {corruption}/{severity}/{class}/{image}.JPEG
-│       # corruption: brightness, contrast, defocus_blur, elastic_transform,
-│       #             frost, glass_blur, impulse_noise, jpeg_compression,
-│       #             motion_blur, pixelate, shot_noise (11종)
-│       # severity: 1-5
+│   ├── tiny-imagenet-200/   # Clean Tiny ImageNet dataset
+│   │   ├── test/
+│   │   │     └── images/
+│   │   ├── train/
+│   │   │     └──{n_serial}                    
+│   │   │            └── images/
+│   │   │       # n_serial : image numbers  
+│   │   ├── val/
+│   │   │     └── images/
+│   │   ├── wnids.txt
+│   │   └── words.txt
+│   ├── Corrupted/   
+│   │   ├── test/
+│   │   ├── train/
+│   │   └── val/
+│   │        └── {corruption}/
+│   │            └── {severity}/
+│   │                └── {image}.JPEG
+│   │            # corruption: brightness, contrast, defocus_blur, elastic_transform,
+│   │            #             fog, frost, gaussian_noise, glass_blur, impulse_noise,
+│   │            #             jpeg_compression, motion_blur, pixelate, shot_noise,
+│   │            #             snow, zoom_blur (15종)
+│   │            # severity: 1-5 
+│   ├── Corrupted_New/       # Corrupted images
+│   │   └── {corruption}/
+│   │       └── {severity}/
+│   │           └── {image}.JPEG
+│   │       # corruption: brightness, contrast, defocus_blur, elastic_transform,
+│   │       #             fog, frost, gaussian_noise, glass_blur, impulse_noise,
+│   │       #             jpeg_compression, motion_blur, pixelate, shot_noise,
+│   │       #             snow, zoom_blur (15종)
+│   │       # severity: 1-5 (현재 데이터에서는 3만 존재)
+│   ├── GT/                  # Ground truth clean images
+│   │   └── test_*.JPEG
+│   ├── nul
+│   └── readme.txt.txt
 │
 ├── ldct/                    # Low-Dose CT (Medical)
 │   ├── train/
 │   │   ├── low_dose/        # 열화 이미지
 │   │   └── full_dose/       # Clean 이미지
 │   └── test/
-│       ├── low_dose/        # 3,584 synthetic noisy images
-│       └── full_dose/       # 3,584 ground truth images (from HDF5)
+│       ├── low_dose/        # synthetic noisy images
+│       └── full_dose/       # ground truth images
 │
 ├── dibco/                   # Document Binarization
 │   └── 2019/
@@ -53,9 +83,9 @@ data/
 ## 데이터 특징
 
 ### ImageNet-C (Tiny-ImageNet-C)
-- **Clean 이미지 없음**: Self-supervised 또는 다른 corruption을 target으로 사용
-- **11가지 corruption**: noise(2), blur(3), weather(2), digital(4)
-- **5단계 severity**: 1(약함) ~ 5(강함)
+- **Clean 이미지**: GT/ 폴더에 test_*.JPEG로 존재, 또는 tiny-imagenet-200/ 클린 데이터셋 사용
+- **15가지 corruption**: noise(3), blur(4), weather(3), digital(5)
+- **5단계 severity**: 1(약함) ~ 5(강함) (현재 데이터에서는 severity 3만 존재)
 
 ### LDCT
 - **Synthetic low_dose**: ground_truth에 Gaussian noise (σ=25) 추가
