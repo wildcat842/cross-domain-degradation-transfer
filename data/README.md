@@ -39,18 +39,6 @@ data/
 │   │            #             jpeg_compression, motion_blur, pixelate, shot_noise,
 │   │            #             snow, zoom_blur (15종)
 │   │            # severity: 1-5 
-│   ├── Corrupted_New/       # Corrupted images
-│   │   └── {corruption}/
-│   │       └── {severity}/
-│   │           └── {image}.JPEG
-│   │       # corruption: brightness, contrast, defocus_blur, elastic_transform,
-│   │       #             fog, frost, gaussian_noise, glass_blur, impulse_noise,
-│   │       #             jpeg_compression, motion_blur, pixelate, shot_noise,
-│   │       #             snow, zoom_blur (15종)
-│   │       # severity: 1-5 (현재 데이터에서는 3만 존재)
-│   ├── GT/                  # Ground truth clean images
-│   │   └── test_*.JPEG
-│   ├── nul
 │   └── readme.txt.txt
 │
 ├── ldct/                    # Low-Dose CT (Medical)
