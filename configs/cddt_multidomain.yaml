@@ -30,6 +30,6 @@ domains:
    - imagenet-weather  # snow, frost, fog, brightness
 
 experiment:
-  name: corruption_transfer
-  save_dir: experiments/default_imagenet/
+  name: cddt_multidomain_imagenetNBC
+  save_dir: experiments/cddt_multidomain_imagenetNBC/
   log_interval: 100
