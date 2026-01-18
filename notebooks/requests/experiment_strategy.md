@@ -13,18 +13,32 @@ tensorboard --logdir "$(ls -d experiments/cddt_multidomain/* | sort | tail -n 1)
 python scripts/train.py --config  configs/cddt_noiseonly.yaml
 tensorboard --logdir "$(ls -d experiments/cddt_noiseonly_imagenetN/* | sort | tail -n 1)/logs"
 
-# Noise → Blur cross-corruption transfer (source, target 주면 config 'domains' 는 무시 (전이 실험) --> crrupption_transfer 에 저장 
+# Noise → Blur cross-corruption transfer (전이 실험) --> crrupption_transfer 에 저장 
 # - default 는 zero shot  (다시 이름을 N2B_0  로 바꿈)
 python scripts/train.py --config configs/corruption_transfer.yaml --source_domain imagenet-noise --target_domain imagenet-blur
 tensorboard --logdir "$(ls -d experiments/corruption_transfer_N2B_0/* | sort | tail -n 1)/logs"
 
-# Noise → Blur cross-corruption transfer (source, target 주면 config 'domains' 는 무시 (전이 실험) --> crrupption_transfer 에 저장 
+# Noise → Blur cross-corruption transfer (전이 실험) --> crrupption_transfer 에 저장 
 # - default 는 zero shot  (다시 이름을 N2W_0  로 바꿈)
 python scripts/train.py --config configs/corruption_transfer.yaml --source_domain imagenet-noise --target_domain imagenet-weather
 tensorboard --logdir "$(ls -d experiments/corruption_transfer_N2W_0/* | sort | tail -n 1)/logs"
 
 
-  # Noise → LDCT cross-domain transfer --> cross_domain_transfer 에 저장
+## 진정한 fewshot
+# Noise -> Blur (0-shot)
+python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-blur --shots 0
+
+# Noise -> Blur (10/50/100-shot)
+python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-blur --shots 10
+python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-blur --shots 50
+python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-blur --shots 100
+
+# Noise -> Weather
+python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-weather --shots 0
+python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-weather --shots 10
+
+
+# Noise → LDCT cross-domain transfer --> cross_domain_transfer 에 저장
 python scripts/train.py --config configs/cross_domain_transfer.yaml \
       --source_domain imagenet-noise --target_domain ldct
 
