@@ -1,0 +1,11 @@
+checkpoint: experiments/cddt_multidomain/cddt_multidomain_20260115_170401/checkpoint_0077_best.pth
+config: ./configs/evaluate.yaml
+data_root: ./data
+output_dir: ./results/imagenet2ldct_evaluation
+mode: single
+source_domain: imagenet
+target_domain: ldct
+save_images: true
+visualize_tsne: true
+batch_size: 16
+n_vis_samples: 10

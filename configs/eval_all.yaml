@@ -1,0 +1,6 @@
+checkpoint: experiments/cddt_multidomain/cddt_multidomain_20260115_170401/checkpoint_0077_best.pth
+data_root: ./data
+output_dir: ./results/cross_domain_eval
+mode: all
+batch_size: 16
+n_shots: 0

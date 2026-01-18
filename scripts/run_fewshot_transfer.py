@@ -8,6 +8,9 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
+import sys
+
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.models import CrossDomainDegradationTransfer
 from src.losses import ICMLLoss

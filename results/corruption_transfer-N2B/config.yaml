@@ -1,0 +1,11 @@
+checkpoint: experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260117_202531/checkpoint_0082_best.pth
+config: ./configs/evaluate.yaml
+data_root: ./data
+output_dir: ./results/imagenetN2B_evaluation
+mode: cross_domain
+source_domain: imagenet-noise
+target_domain: imagenet-blur
+save_images: true
+visualize_tsne: true
+batch_size: 16
+n_vis_samples: 10

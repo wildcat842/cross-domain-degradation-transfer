@@ -1,32 +1,33 @@
-## 이름 규칙 : 모델, 학습세팅, 데이터셋
-## denoiser - baseline 훈련 명령어 --> dncnn_noiseonly_imagenet 에 저장
+# 학습 
+ 이름 규칙 : 모델, 학습세팅, 데이터셋
 
-python scripts/train.py --config  configs/dcnn_noiseonly.yaml --model denoiser
-tensorboard --logdir "$(ls -d experiments/dncnn_noiseonly_imagenet/* | sort | tail -n 1)/logs"
+## denoiser - baseline 훈련 명령어 --> dncnn_noiseonly_imagenet 에 저장
+## tensorboard --logdir "$(ls -d experiments/dncnn_noiseonly_imagenet/* | sort | tail -n 1)/logs"
+
+CUDA_VISIBLE_DEVICES=2 python scripts/train.py --config  configs/dcnn_noiseonly.yaml --model denoiser
 
 
 ## CDDT-mulidomain 훈련 명령어  --> cddt_multidomain_imagenetNBC 에 저장
-python scripts/train.py --config  configs/cddt_multidomain.yaml
-tensorboard --logdir "$(ls -d experiments/cddt_multidomain/* | sort | tail -n 1)/logs"
+## tensorboard --logdir "$(ls -d experiments/cddt_multidomain/* | sort | tail -n 1)/logs"
+CUDA_VISIBLE_DEVICES=3 python scripts/train.py --config  configs/cddt_multidomain.yaml
+
 
 ## CDDT noise only 훈련 명령어  --> cddt_noiseonly_imagenetN 에 저장
-python scripts/train.py --config  configs/cddt_noiseonly.yaml
-tensorboard --logdir "$(ls -d experiments/cddt_noiseonly_imagenetN/* | sort | tail -n 1)/logs"
+## tensorboard --logdir "$(ls -d experiments/cddt_noiseonly_imagenetN/* | sort | tail -n 1)/logs"
 
-# Noise → Blur cross-corruption transfer (전이 실험) --> crrupption_transfer 에 저장 
-# - default 는 zero shot  (다시 이름을 N2B_0  로 바꿈)
-python scripts/train.py --config configs/corruption_transfer.yaml --source_domain imagenet-noise --target_domain imagenet-blur
-tensorboard --logdir "$(ls -d experiments/corruption_transfer_N2B_0/* | sort | tail -n 1)/logs"
+CUDA_VISIBLE_DEVICES=3 python scripts/train.py --config  configs/cddt_noiseonly.yaml
 
-# Noise → Blur cross-corruption transfer (전이 실험) --> crrupption_transfer 에 저장 
-# - default 는 zero shot  (다시 이름을 N2W_0  로 바꿈)
-python scripts/train.py --config configs/corruption_transfer.yaml --source_domain imagenet-noise --target_domain imagenet-weather
-tensorboard --logdir "$(ls -d experiments/corruption_transfer_N2W_0/* | sort | tail -n 1)/logs"
+# 평가  
+## corruption transfer (노이즈 온리 체크포인트를 eval_imagenet_all.yaml 에 저장하고)
+CUDA_VISIBLE_DEVICES=2 python scripts/evaluate.py --config configs/eval_imagenet_all.yaml --checkpoint ./experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260118_205758/checkpoint_0051_best.pth
+data_root: .
+## cross domain transfer  (이미지넷 멀티 도메인 체크포인트를 eval_all.yaml 에 )
+CUDA_VISIBLE_DEVICES=3 python scripts/evaluate.py --config configs/eval_all.yaml
 
 
 ## 진정한 fewshot
 # Noise -> Blur (0-shot)
-python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-blur --shots 0
+python scripts/run_fewshot_transfer.py --config configs/fewshot_transfer.yaml --target imagenet-blur --shots 0
 
 # Noise -> Blur (10/50/100-shot)
 python scripts/run_fewshot_transfer.py --config configs/cddt_noiseonly.yaml --target imagenet-blur --shots 10
@@ -44,8 +45,10 @@ python scripts/train.py --config configs/cross_domain_transfer.yaml \
 
 
 
+## #########################################################################################
+## AI 평가 
+## #########################################################################################
 
-AI 평가 
 
 ## 1) DnCNN(denoiser) noise-only baseline: `dncnn_noiseonly_imagenet`
 

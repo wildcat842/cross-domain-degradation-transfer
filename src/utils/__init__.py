@@ -8,6 +8,7 @@ from .visualization import (
     plot_tsne_degradation,
     plot_training_curves,
     create_comparison_figure,
+    save_result_grid,
 )
 
 __all__ = [
@@ -19,4 +20,5 @@ __all__ = [
     'plot_tsne_degradation',
     'plot_training_curves',
     'create_comparison_figure',
+    'save_result_grid',
 ]

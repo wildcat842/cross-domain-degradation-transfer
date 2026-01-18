@@ -1,0 +1,6 @@
+checkpoint: ./experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260118_205758/checkpoint_0051_best.pth
+data_root: ./data
+output_dir: ./results/imagenet_corruption_eval
+mode: imagenet-all
+batch_size: 16
+n_shots: 0

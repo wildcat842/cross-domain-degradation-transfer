@@ -4,6 +4,9 @@ version = "0.1.0"
 description = "Cross-Domain Degradation Transfer Learning for Image Restoration"
 readme = "README.md"
 requires-python = ">=3.8"
+dependencies = [
+    "seaborn>=0.13.2",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
