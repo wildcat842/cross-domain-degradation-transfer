@@ -23,7 +23,7 @@ from tqdm import tqdm
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models import CrossDomainDegradationTransfer, SimpleDenoiser
+from src.models import CrossDomainDegradationTransfer, SimpleDenoiser, NAFNet
 from src.losses import ICMLLoss
 from src.data import create_multi_domain_loader, create_cross_domain_pairs
 from src.data.loader import MultiDomainIterator
@@ -39,7 +39,7 @@ def parse_args():
     parser.add_argument('--exp_name', type=str, default=None,
                         help='Experiment name')
     parser.add_argument('--model', type=str, default='cddt',
-                        choices=['cddt', 'denoiser'],
+                        choices=['cddt', 'denoiser', 'nafnet'],
                         help='Model to train')
 
     # Cross-domain transfer settings
@@ -205,6 +205,8 @@ def main():
     # Model
     if args.model == 'denoiser':
         model = SimpleDenoiser().to(device)
+    elif args.model == 'nafnet':
+        model = NAFNet().to(device)
     else:
         model = CrossDomainDegradationTransfer(
             deg_dim=config['model']['deg_dim'],
@@ -215,7 +217,7 @@ def main():
     print(f"Model parameters: {sum(p.numel() for p in model.parameters()):,}")
 
     # Loss
-    if args.model == 'denoiser':
+    if args.model in ['denoiser', 'nafnet']:
         criterion = None
     else:
         criterion = ICMLLoss(
@@ -301,7 +303,7 @@ def main():
     for epoch in range(start_epoch, config['training']['epochs']):
         # Train
         train_metrics = train_epoch(
-            model, iterator, criterion, optimizer, device, epoch, config, args.model, writer
+            model, iterator, criterion, optimizer, device, epoch, config, 'denoiser' if args.model in ['denoiser', 'nafnet'] else args.model, writer
         )
         print(f"Epoch {epoch} - Train: {train_metrics}")
 

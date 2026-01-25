@@ -1,0 +1,9 @@
+ckpts:
+  multidomain: "./experiments/cddt_multidomain_imagenetNBC/cddt_multidomain_imagenetNBC_20260118_212417/checkpoint_0080_best.pth"
+  noise_only: "./experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260118_205758/checkpoint_0051_best.pth"
+  blur_only: "./experiments/cddt_bluronly_imagenetB/cddt_bluronly_imagenetB_20260125_184418/checkpoint_0092_best.pth"
+  weather_only: "./experiments/cddt_weatheronly_imagenetW/cddt_weatheronly_imagenetW_20260125_192212/checkpoint_0082_best.pth"
+
+
+
+fewshot_root: "./results/fewshot_with_dict"

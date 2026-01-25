@@ -1,7 +1,7 @@
 from .encoders import DegradationEncoder, ContentEncoder
 from .decoder import CrossDomainDecoder, AdaIN
 from .cddt import CrossDomainDegradationTransfer
-from .denoiser import SimpleDenoiser
+from .denoiser import SimpleDenoiser, NAFNet
 
 __all__ = [
     'DegradationEncoder',
@@ -10,4 +10,5 @@ __all__ = [
     'AdaIN',
     'CrossDomainDegradationTransfer',
     'SimpleDenoiser',
+    'NAFNet',
 ]

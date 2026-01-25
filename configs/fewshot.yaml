@@ -1,11 +1,16 @@
 data_root: ./data
-output_dir: ./results/imagenet_corruption_eval
-mode: imagenet-all
-batch_size: 16
+output_dir: ./results/fewshot
 image_size: 64
-n_shots: 0
 
-checkpoints: 
+batch_size: 16
+
+loss:
+  recon_weight: 1.0
+  kl_weight: 0.01
+  disentangle_weight: 0.1
+  domain_weight: 0.1
+
+checkpoints:
   imagenet-noise: ./experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260118_205758/checkpoint_0051_best.pth
   imagenet-blur: ./experiments/cddt_bluronly_imagenetB/cddt_bluronly_imagenetB_20260125_184418/checkpoint_0092_best.pth
   imagenet-weather: ./experiments/cddt_weatheronly_imagenetW/cddt_weatheronly_imagenetW_20260125_192212/checkpoint_0082_best.pth
