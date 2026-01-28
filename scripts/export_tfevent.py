@@ -11,10 +11,12 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 from tensorboard.backend.event_processing import event_accumulator
 
 ################################# 체크포인트가 있는 파일 경로로 바꾸세요 #################################
-EVENT_PATH = os.path.join(script_dir, "../experiments/cddt_weatheronly_imagenetW/cddt_weatheronly_imagenetW_20260125_192212/logs/events.out.tfevents.1769336538.server179-96.2018133.0")
+#EVENT_PATH = os.path.join(script_dir, "../experiments/cddt_weatheronly_imagenetW/cddt_weatheronly_imagenetW_20260125_192212/logs/events.out.tfevents.1769336538.server179-96.2018133.0")
+EVENT_PATH = os.path.join(script_dir, "../experiments/dncnn_weatheronly_imagenet/dncnn_weatheronly_imagenet_20260127_183037/logs/events.out.tfevents.1769506243.server179-96.3282682.0")
+
 
 ####################### 폴더 명을 바꾸세요 #########
-out_dir = os.path.join(script_dir, "../paper/tables/tb_figs_cddt_weatheronly")
+out_dir = os.path.join(script_dir, "../paper/tables/tb_figs_dcnn_weatheronly")
 
 
 # 2) 이벤트 로드

@@ -1,0 +1,39 @@
+# # # ./scripts/train.py --model denoiser --config configs/dcnn_weatheronly.yaml
+# Simple Denoiser Baseline Configuration
+# DnCNN-style residual denoising baseline
+
+model:
+  # SimpleDenoiser에서는 사용되지 않지만,
+  # config 로딩 일관성을 위해 유지
+  deg_dim: null
+  content_dim: null
+  n_degradation_types: null
+
+loss:
+  # SimpleDenoiser는 MSE만 사용
+  recon_weight: 1.0
+  kl_weight: 0.0
+  disentangle_weight: 0.0
+  domain_weight: 0.0
+
+training:
+  batch_size: 16
+  learning_rate: 0.0001
+  epochs: 100
+  iters_per_epoch: 1000
+
+data:
+  train_dir: data/train
+  val_dir: data/val
+  image_size: 64
+  num_workers: 4
+
+# 모든 weather 타입을 하나의 domain으로 취급
+domains:
+  - imagenet-weather   # gaussian, shot, impulse (all mixed)
+
+experiment:
+  name: dncnn_weatheronly_imagenet
+  save_dir: experiments/dncnn_weatheronly_imagenet/
+  log_interval: 100
+  save_interval: 10

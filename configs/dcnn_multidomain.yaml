@@ -1,0 +1,36 @@
+# python ./scripts/train.py --model denoiser --config configs/dcnn_multidomain.yaml
+# Cross-Corruption Transfer Experiment Configuration
+# Separates ImageNet-C by corruption category for better degradation disentanglement
+
+model:
+  deg_dim: 256
+  content_dim: 512
+  n_degradation_types: 8
+
+loss:
+  recon_weight: 1.0
+  kl_weight: 0.01
+  disentangle_weight: 0.1
+  domain_weight: 0.1
+
+training:
+  batch_size: 16
+  learning_rate: 0.0001
+  epochs: 100
+  iters_per_epoch: 1000
+
+data:
+  train_dir: data/train
+  val_dir: data/val
+  image_size: 64   
+  num_workers: 4
+
+domains:
+   - imagenet-noise    # gaussian, shot, impulse noise
+   - imagenet-blur     # defocus, glass, motion, zoom blur
+   - imagenet-weather  # snow, frost, fog, brightness
+
+experiment:
+  name: dncnn_multidomain_imagenetNBC
+  save_dir: experiments/dncnn_multidomain_imagenetNBC/
+  log_interval: 100

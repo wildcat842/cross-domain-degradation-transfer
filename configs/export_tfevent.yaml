@@ -1,0 +1,11 @@
+#/home/lucia/work/cross-domain-degradation-transfer/experiments/dncnn_noiseonly_imagenet/dncnn_noiseonly_imagenet_20260118_210000/logs/events.out.tfevents.1768737607.server179-96.2805395.0
+#/home/lucia/work/cross-domain-degradation-transfer/experiments/dncnn_weatheronly_imagenet/dncnn_weatheronly_imagenet_20260127_183037/logs/events.out.tfevents.1769506243.server179-96.3282682.0
+logs:
+  dncnn_bluronly_imagenet: "experiments/dncnn_bluronly_imagenet/dncnn_bluronly_imagenet_20260127_181720/logs/events.out.tfevents.1769505447.server179-96.3273563.0
+  dncnn_noiseonly_imagenet: "experiments/dncnn_noiseonly_imagenet/dncnn_noiseonly_imagenet_20260118_210000/logs/events.out.tfevents.1768737607.server179-96.2805395.0
+  dncnn_weatheronly_imagenet: "experiments/dcnn_weatheronly_imagenet/dncnn_weatheronly_imagenet_20260127_183037/logs/events.out.tfevents.1769506243.server179-96.3282682.0"
+
+tables:
+  dncnn_bluronly_imagenet: "paper/tables/tb_figs_dcnn_bluronly"
+  dncnn_noiseonly_imagenet: "paper/tables/tb_figs_dcnn_noiseonly"
+  dncnn_weatheronly_imagenet: "paper/tables/tb_figs_dcnn_weatheronly"
