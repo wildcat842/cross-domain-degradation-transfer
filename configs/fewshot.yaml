@@ -1,5 +1,5 @@
 data_root: ./data
-output_dir: ./results/fewshot
+output_dir: ./results/fewshot_dncnn_with_dict
 image_size: 64
 
 batch_size: 16
@@ -11,6 +11,13 @@ loss:
   domain_weight: 0.1
 
 checkpoints:
-  imagenet-noise: ./experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260118_205758/checkpoint_0051_best.pth
-  imagenet-blur: ./experiments/cddt_bluronly_imagenetB/cddt_bluronly_imagenetB_20260125_184418/checkpoint_0092_best.pth
-  imagenet-weather: ./experiments/cddt_weatheronly_imagenetW/cddt_weatheronly_imagenetW_20260125_192212/checkpoint_0082_best.pth
+#dncnn 모델 체크포인트 경로들
+  imagenet-noise: ./experiments/dncnn_noiseonly_imagenet/dncnn_noiseonly_imagenet_20260118_210000/checkpoint_0006_best.pth
+  imagenet-blur : ./experiments/dncnn_bluronly_imagenet/dncnn_bluronly_imagenet_20260127_181720/checkpoint_0058_best.pth
+  imagenet-weather: ./experiments/dncnn_weatheronly_imagenet/dncnn_weatheronly_imagenet_20260127_183037/checkpoint_0061_best.pth
+
+#cdddt 모델 체크포인트 경로들
+#  imagenet-noise: ./experiments/cddt_noiseonly_imagenetN/cddt_noiseonly_imagenetN_20260118_205758/checkpoint_0051_best.pth
+#  imagenet-blur: ./experiments/cddt_bluronly_imagenetB/cddt_bluronly_imagenetB_20260125_184418/checkpoint_0092_best.pth
+#  imagenet-weather: ./experiments/cddt_weatheronly_imagenetW/cddt_weatheronly_imagenetW_20260125_192212/checkpoint_0082_best.pth
+

@@ -5,8 +5,10 @@ Few-shot adaptation for Cross-Domain / Cross-Corruption Transfer
 - Zero-shot evaluation on target
 - Few-shot fine-tuning (optional)
 
+
+
 python finetune_fewshot.py --fewshot.yaml --source <source_domain> --target <target_domain> --shots <n_shots> --ft_steps <fine_tune_steps> --ft_lr <fine_tune_lr>
-python ./scripts/finetune_fewshot.py --fewshot.yaml --source imagenet-blur --target imagenet-noise --shots 100  
+python ./scripts/finetune_fewshot.py --config configs/fewshot.yaml --source imagenet-blur --target imagenet-noise --shots 100  
 
 """
 
